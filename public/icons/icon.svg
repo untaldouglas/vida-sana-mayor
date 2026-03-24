@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#8A9A5B"/>
+  <circle cx="256" cy="220" r="100" fill="#F4C430" opacity="0.95"/>
+  <g fill="#F4C430" opacity="0.7">
+    <rect x="248" y="80" width="16" height="60" rx="8"/>
+    <rect x="248" y="362" width="16" height="60" rx="8"/>
+    <rect x="80" y="212" width="60" height="16" rx="8"/>
+    <rect x="372" y="212" width="60" height="16" rx="8"/>
+    <rect x="129" y="129" width="16" height="50" rx="8" transform="rotate(45 137 154)"/>
+    <rect x="355" y="329" width="16" height="50" rx="8" transform="rotate(45 363 354)"/>
+    <rect x="129" y="333" width="50" height="16" rx="8" transform="rotate(-45 154 341)"/>
+    <rect x="329" y="129" width="50" height="16" rx="8" transform="rotate(-45 354 137)"/>
+  </g>
+  <text x="256" y="430" text-anchor="middle" font-family="Nunito, sans-serif" font-size="56" font-weight="800" fill="white">VSM</text>
+</svg>

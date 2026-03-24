@@ -1,0 +1,33 @@
+{
+  "name": "vida-sana-mayor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PWA de salud para adultos con enfermedades crónicas - 100% offline, open source",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "idb": "^8.0.0",
+    "qrcode": "^1.5.3",
+    "tesseract.js": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@types/qrcode": "^1.5.5",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vite-plugin-pwa": "^0.19.0",
+    "workbox-precaching": "^7.0.0",
+    "workbox-routing": "^7.0.0",
+    "workbox-strategies": "^7.0.0"
+  }
+}
