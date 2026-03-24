@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getAppointments, saveAppointment, deleteAppointment, getDoctors, generateId, speak } from '../storage'
 import type { Appointment, Doctor, Profile } from '../types'
+import ImagePicker, { ImageThumbs } from './ImagePicker'
 
 interface AgendaProps {
   profile: Profile
@@ -119,22 +120,25 @@ export default function Agenda({ profile, showToast }: AgendaProps) {
               </div>
             : <ul className="item-list">
                 {upcoming.map(appt => (
-                  <li key={appt.id} className="item-row">
-                    <span className="item-icon">🏥</span>
-                    <div className="item-body">
-                      <div className="item-title">{appt.reason}</div>
-                      <div className="item-sub">
-                        {new Date(appt.date + 'T00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })} · {appt.time}
+                  <li key={appt.id} className="item-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className="item-icon">🏥</span>
+                      <div className="item-body">
+                        <div className="item-title">{appt.reason}</div>
+                        <div className="item-sub">
+                          {new Date(appt.date + 'T00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })} · {appt.time}
+                        </div>
+                        {(appt.doctorName || getDoctorName(appt.doctorId)) && (
+                          <div className="item-sub">Dr. {appt.doctorName || getDoctorName(appt.doctorId)}</div>
+                        )}
+                        {appt.location && <div className="item-sub">📍 {appt.location}</div>}
                       </div>
-                      {(appt.doctorName || getDoctorName(appt.doctorId)) && (
-                        <div className="item-sub">Dr. {appt.doctorName || getDoctorName(appt.doctorId)}</div>
-                      )}
-                      {appt.location && <div className="item-sub">📍 {appt.location}</div>}
+                      <div className="item-actions">
+                        <button className="btn btn-sm btn-outline" onClick={() => { setEditing(appt); setShowForm(true) }} style={{ padding: '6px 8px', minHeight: 36 }}>✏️</button>
+                        <button className="btn btn-sm" onClick={() => removeAppt(appt.id)} style={{ padding: '6px 8px', minHeight: 36, background: '#FFECEC', border: 'none', borderRadius: 8, cursor: 'pointer' }}>🗑</button>
+                      </div>
                     </div>
-                    <div className="item-actions">
-                      <button className="btn btn-sm btn-outline" onClick={() => { setEditing(appt); setShowForm(true) }} style={{ padding: '6px 8px', minHeight: 36 }}>✏️</button>
-                      <button className="btn btn-sm" onClick={() => removeAppt(appt.id)} style={{ padding: '6px 8px', minHeight: 36, background: '#FFECEC', border: 'none', borderRadius: 8, cursor: 'pointer' }}>🗑</button>
-                    </div>
+                    <ImageThumbs fileIds={appt.imageFileIds ?? []} size={52} />
                   </li>
                 ))}
               </ul>
@@ -191,6 +195,7 @@ export default function Agenda({ profile, showToast }: AgendaProps) {
         <ApptForm
           initial={editing}
           doctors={doctors}
+          profileId={profile.id}
           onSave={saveAppt}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
@@ -199,9 +204,10 @@ export default function Agenda({ profile, showToast }: AgendaProps) {
   )
 }
 
-function ApptForm({ initial, doctors, onSave, onClose }: {
+function ApptForm({ initial, doctors, profileId, onSave, onClose }: {
   initial: Appointment | null
   doctors: Doctor[]
+  profileId: string
   onSave: (a: Appointment) => void
   onClose: () => void
 }) {
@@ -214,6 +220,7 @@ function ApptForm({ initial, doctors, onSave, onClose }: {
   const [notes, setNotes] = useState(initial?.notes ?? '')
   const [reminder, setReminder] = useState(initial?.reminder ?? true)
   const [reminderMinutes, setReminderMinutes] = useState(initial?.reminderMinutes ?? 60)
+  const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
 
   function save() {
     const selected = doctors.find(d => d.id === doctorId)
@@ -222,7 +229,8 @@ function ApptForm({ initial, doctors, onSave, onClose }: {
       date, time, reason, doctorId: doctorId || undefined,
       doctorName: selected?.name || doctorName || undefined,
       location: location || undefined, notes: notes || undefined,
-      reminder, reminderMinutes
+      reminder, reminderMinutes,
+      imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined
     })
   }
 
@@ -249,6 +257,15 @@ function ApptForm({ initial, doctors, onSave, onClose }: {
         )}
         <div className="form-group"><label>Lugar / Clínica</label><input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Ej: Hospital General" /></div>
         <div className="form-group"><label>Notas</label><textarea value={notes} onChange={e => setNotes(e.target.value)} /></div>
+        <div className="form-group">
+          <ImagePicker
+            profileId={profileId}
+            fileIds={imageFileIds}
+            onChange={setImageFileIds}
+            label="📷 Fotos (indicaciones, resultados, recetas)"
+            maxImages={5}
+          />
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <input type="checkbox" id="reminder" checked={reminder} onChange={e => setReminder(e.target.checked)} style={{ width: 22, height: 22, minHeight: 'unset', accentColor: '#8A9A5B' }} />
           <label htmlFor="reminder" style={{ marginBottom: 0 }}>Recordatorio</label>

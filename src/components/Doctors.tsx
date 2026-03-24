@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getDoctors, saveDoctor, deleteDoctor, getMedicalRecord, generateId } from '../storage'
 import type { Doctor, Diagnosis, Profile } from '../types'
+import ImagePicker, { ImageThumbs } from './ImagePicker'
 
 interface DoctorsProps {
   profile: Profile
@@ -81,6 +82,7 @@ export default function Doctors({ profile, showToast }: DoctorsProps) {
               </div>
             </div>
             {doc.notes && <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>{doc.notes}</p>}
+            <ImageThumbs fileIds={doc.imageFileIds ?? []} size={52} />
           </li>
         ))}
       </ul>
@@ -89,6 +91,7 @@ export default function Doctors({ profile, showToast }: DoctorsProps) {
         <DoctorForm
           initial={editing}
           diagnoses={diagnoses}
+          profileId={profile.id}
           onSave={saveDoc}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
@@ -97,9 +100,10 @@ export default function Doctors({ profile, showToast }: DoctorsProps) {
   )
 }
 
-function DoctorForm({ initial, diagnoses, onSave, onClose }: {
+function DoctorForm({ initial, diagnoses, profileId, onSave, onClose }: {
   initial: Doctor | null
   diagnoses: Diagnosis[]
+  profileId: string
   onSave: (d: Doctor) => void
   onClose: () => void
 }) {
@@ -109,6 +113,7 @@ function DoctorForm({ initial, diagnoses, onSave, onClose }: {
   const [address, setAddress] = useState(initial?.address ?? '')
   const [notes, setNotes] = useState(initial?.notes ?? '')
   const [diagnosisIds, setDiagnosisIds] = useState<string[]>(initial?.diagnosisIds ?? [])
+  const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
 
   function toggleDiag(id: string) {
     setDiagnosisIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
@@ -142,9 +147,18 @@ function DoctorForm({ initial, diagnoses, onSave, onClose }: {
           </div>
         )}
         <div className="form-group"><label>Notas</label><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Horarios, indicaciones especiales..." /></div>
+        <div className="form-group">
+          <ImagePicker
+            profileId={profileId}
+            fileIds={imageFileIds}
+            onChange={setImageFileIds}
+            label="📷 Fotos (credencial, consultorio, indicaciones)"
+            maxImages={4}
+          />
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
-          <button className="btn btn-primary" onClick={() => onSave({ id: initial?.id ?? generateId(), name, specialty, phone: phone || undefined, address: address || undefined, notes: notes || undefined, diagnosisIds })} disabled={!name} style={{ flex: 2 }}>💾 Guardar</button>
+          <button className="btn btn-primary" onClick={() => onSave({ id: initial?.id ?? generateId(), name, specialty, phone: phone || undefined, address: address || undefined, notes: notes || undefined, diagnosisIds, imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined })} disabled={!name} style={{ flex: 2 }}>💾 Guardar</button>
         </div>
       </div>
     </div>

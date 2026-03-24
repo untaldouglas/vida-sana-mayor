@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getMedicalRecord, saveMedicalRecord, generateId, speak, updateProgress } from '../storage'
 import type { Medication, MedicalRecord, Profile } from '../types'
+import ImagePicker, { ImageThumbs } from './ImagePicker'
 
 interface MedicationsProps {
   profile: Profile
@@ -113,6 +114,7 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
                           ⚠️ Solo quedan {med.stock} {med.stock === 1 ? 'píldora' : 'píldoras'}
                         </div>
                       )}
+                      <ImageThumbs fileIds={med.imageFileIds ?? []} size={48} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <button
@@ -173,6 +175,7 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
       {showForm && (
         <MedForm
           initial={editing}
+          profileId={profile.id}
           onSave={saveMed}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
@@ -182,8 +185,9 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
 }
 
 // ---- Formulario de medicamento ----
-function MedForm({ initial, onSave, onClose }: {
+function MedForm({ initial, profileId, onSave, onClose }: {
   initial: Medication | null
+  profileId: string
   onSave: (med: Medication) => void
   onClose: () => void
 }) {
@@ -196,6 +200,7 @@ function MedForm({ initial, onSave, onClose }: {
   const [stock, setStock] = useState(String(initial?.stock ?? 30))
   const [stockAlert, setStockAlert] = useState(String(initial?.stockAlert ?? 5))
   const [notes, setNotes] = useState(initial?.notes ?? '')
+  const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
 
   function save() {
     const med: Medication = {
@@ -210,7 +215,8 @@ function MedForm({ initial, onSave, onClose }: {
       stockAlert: parseInt(stockAlert) || 5,
       notes: notes.trim() || undefined,
       lastTaken: initial?.lastTaken,
-      takenHistory: initial?.takenHistory ?? []
+      takenHistory: initial?.takenHistory ?? [],
+      imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined
     }
     onSave(med)
   }
@@ -271,6 +277,16 @@ function MedForm({ initial, onSave, onClose }: {
         <div className="form-group">
           <label>Notas</label>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Indicaciones especiales..." />
+        </div>
+
+        <div className="form-group">
+          <ImagePicker
+            profileId={profileId}
+            fileIds={imageFileIds}
+            onChange={setImageFileIds}
+            label="📷 Fotos (caja, receta, indicaciones)"
+            maxImages={4}
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>

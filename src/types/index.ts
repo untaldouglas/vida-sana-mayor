@@ -62,6 +62,7 @@ export interface Medication {
   notes?: string
   lastTaken?: string
   takenHistory: TakenRecord[]
+  imageFileIds?: string[]    // fotos de la caja/receta
 }
 
 export interface TakenRecord {
@@ -127,6 +128,7 @@ export interface Doctor {
   address?: string
   diagnosisIds: string[]
   notes?: string
+  imageFileIds?: string[]    // foto de credencial, consultorio, etc.
 }
 
 // Cita médica
@@ -141,6 +143,7 @@ export interface Appointment {
   reminder: boolean
   reminderMinutes: number
   notes?: string
+  imageFileIds?: string[]    // fotos de indicaciones, resultados, etc.
 }
 
 // Síntoma / Diario
