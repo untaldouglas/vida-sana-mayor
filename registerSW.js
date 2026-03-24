@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/vida-sana-mayor/sw.js', { scope: '/vida-sana-mayor/' })})}
