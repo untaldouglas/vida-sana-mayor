@@ -279,6 +279,25 @@ Ver [CHANGELOG.md](CHANGELOG.md) para la historia completa de cambios.
 
 ---
 
+## 🤖 Flujo de desarrollo con Claude Code
+
+El proyecto incluye **skills (slash commands)** y un **conector MCP de GitHub** que automatizan las tareas más repetitivas. Ver [docs/HERRAMIENTAS_IA.md](docs/HERRAMIENTAS_IA.md) para la documentación completa.
+
+| Comando en Claude Code | Qué hace |
+|------------------------|----------|
+| `/nueva-funcion <descripción>` | Implementa, compila, propone commit y CHANGELOG |
+| `/publicar <versión>` | Publica en GitHub + Pages con un solo comando |
+| `/actualizar-docs` | Sincroniza README y CHANGELOG con el código |
+| `/estado` | Snapshot: versión, CI, Pages, cambios pendientes |
+
+```bash
+make skills-list    # ver todos los skills disponibles
+make mcp-test       # verificar el conector GitHub MCP
+make setup-dev      # configurar entorno desde cero
+```
+
+---
+
 ## 🚀 Publicar una nueva versión
 
 ```bash

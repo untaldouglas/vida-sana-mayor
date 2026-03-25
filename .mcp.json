@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "GITHUB_PERSONAL_ACCESS_TOKEN=$(gh auth token) npx -y @modelcontextprotocol/server-github@2025.4.8"
+      ],
+      "description": "GitHub MCP – gestión de issues, PRs, releases, CI y code search directamente desde Claude Code"
+    }
+  }
+}

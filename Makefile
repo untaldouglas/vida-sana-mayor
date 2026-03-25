@@ -7,6 +7,7 @@
 .PHONY: help install dev build preview lint clean clean-all check \
         icons deploy-gh serve-local \
         release release-dry changelog \
+        skills-list skills-help mcp-test setup-dev \
         ollama-check ollama-start ollama-pull-qwen ollama-pull-llama \
         ollama-pull-mistral ollama-pull-gemma ollama-pull-phi \
         ollama-pull-all ollama-list \
@@ -25,6 +26,9 @@ help:
 	@echo ""
 	@echo "  PUBLICACIÓN (GitHub + Pages)"
 	@grep -E '^## (release|changelog|deploy|serve):' Makefile | sed 's/## /    make /g'
+	@echo ""
+	@echo "  CLAUDE CODE – Skills y MCP"
+	@grep -E '^## (skills|mcp|setup-dev):' Makefile | sed 's/## /    make /g'
 	@echo ""
 	@echo "  INTELIGENCIA ARTIFICIAL (Ollama – local, gratuito)"
 	@grep -E '^## ollama' Makefile | sed 's/## /    make /g'
@@ -128,6 +132,72 @@ serve-local: build
 	npx serve dist -p 4173 \
 	  --ssl-cert ~/.local/share/mkcert/localhost.pem \
 	  --ssl-key ~/.local/share/mkcert/localhost-key.pem
+
+# ─── CLAUDE CODE – Skills y MCP ──────────────────────────────
+
+## skills-list: Listar todos los skills (slash commands) disponibles en Claude Code
+skills-list:
+	@echo ""
+	@echo "☀️  Vida Sana Mayor – Claude Code Skills disponibles"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "  Úsalos escribiendo /<nombre> en Claude Code:"
+	@echo ""
+	@for f in .claude/commands/*.md; do \
+	  name=$$(basename "$$f" .md); \
+	  desc=$$(head -1 "$$f" | sed 's/# \/[^ ]* – //'); \
+	  printf "  /%-22s %s\n" "$$name" "$$desc"; \
+	done
+	@echo ""
+	@echo "  MCP conectores activos (.mcp.json):"
+	@python3 -c "import json; d=json.load(open('.mcp.json')); [print(f'  {k}: {v.get(\"description\",\"\")[:60]}') for k,v in d.get('mcpServers',{}).items()]" 2>/dev/null || echo "  (no hay .mcp.json)"
+	@echo ""
+
+## skills-help: Ver documentación de un skill. Ej: make skills-help SKILL=publicar
+skills-help:
+	@if [ -z "$(SKILL)" ]; then \
+	  echo "Uso: make skills-help SKILL=<nombre>"; \
+	  echo "Skills: $$(ls .claude/commands/*.md | xargs -I{} basename {} .md | tr '\n' '  ')"; \
+	else \
+	  cat ".claude/commands/$(SKILL).md" 2>/dev/null || echo "Skill '$(SKILL)' no encontrado"; \
+	fi
+
+## mcp-test: Verificar que el servidor GitHub MCP tiene autenticación correcta
+mcp-test:
+	@echo "🔌 Verificando GitHub MCP..."
+	@gh auth status > /dev/null 2>&1 && echo "  ✅ gh CLI autenticado" || echo "  ❌ Ejecuta: gh auth login"
+	@GITHUB_PERSONAL_ACCESS_TOKEN=$$(gh auth token 2>/dev/null); \
+	  [ -n "$$GITHUB_PERSONAL_ACCESS_TOKEN" ] && echo "  ✅ Token disponible para MCP" || echo "  ❌ Sin token"
+	@[ -f .mcp.json ] && echo "  ✅ .mcp.json presente" || echo "  ❌ .mcp.json no encontrado"
+	@echo "  ℹ️  El MCP se activa automáticamente al abrir Claude Code aquí"
+
+## setup-dev: Configurar entorno de desarrollo completo (install + verificar herramientas)
+setup-dev:
+	@echo ""
+	@echo "☀️  Configurando entorno – Vida Sana Mayor..."
+	@echo ""
+	@echo "  [1/4] Instalando dependencias npm..."
+	@npm install --silent && echo "  ✅ npm install OK"
+	@echo ""
+	@echo "  [2/4] Verificando herramientas del sistema..."
+	@command -v gh > /dev/null && echo "  ✅ GitHub CLI $$(gh --version | head -1)" || echo "  ⚠️  gh no encontrado: brew install gh"
+	@command -v node > /dev/null && echo "  ✅ Node.js $$(node --version)" || echo "  ❌ Node.js requerido"
+	@command -v python3 > /dev/null && echo "  ✅ Python3 $$(python3 --version)" || echo "  ⚠️  Python3 necesario para release script"
+	@echo ""
+	@echo "  [3/4] Verificando autenticación GitHub..."
+	@gh auth status > /dev/null 2>&1 && echo "  ✅ GitHub autenticado" || echo "  ⚠️  Ejecuta: gh auth login"
+	@echo ""
+	@echo "  [4/4] Skills de Claude Code disponibles:"
+	@for f in .claude/commands/*.md; do \
+	  name=$$(basename "$$f" .md); \
+	  printf "    /%-20s\n" "$$name"; \
+	done
+	@echo ""
+	@echo "✅ Entorno listo. Comandos clave:"
+	@echo "   npm run dev                    → servidor local"
+	@echo "   make release VERSION=x.y.z    → publicar versión"
+	@echo "   make skills-list              → ver skills de Claude Code"
+	@echo ""
 
 # ─── OLLAMA (IA local, gratuita) ─────────────────────────────
 

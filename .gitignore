@@ -31,5 +31,8 @@ yarn-error.log*
 .cache/
 *.tsbuildinfo
 
-# Claude Code
-.claude/
+# Claude Code – excluir configuraciones locales, versionar solo los skills del proyecto
+.claude/settings.json
+.claude/settings.local.json
+.claude/todos.md
+.claude/memory/
