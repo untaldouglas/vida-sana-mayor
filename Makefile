@@ -6,6 +6,7 @@
 
 .PHONY: help install dev build preview lint clean clean-all check \
         icons deploy-gh serve-local \
+        release release-dry changelog \
         ollama-check ollama-start ollama-pull-qwen ollama-pull-llama \
         ollama-pull-mistral ollama-pull-gemma ollama-pull-phi \
         ollama-pull-all ollama-list \
@@ -22,8 +23,8 @@ help:
 	@echo "  DESARROLLO"
 	@grep -E '^## (install|dev|build|preview|lint|clean|check|icons):' Makefile | sed 's/## /    make /g'
 	@echo ""
-	@echo "  DESPLIEGUE"
-	@grep -E '^## (deploy|serve):' Makefile | sed 's/## /    make /g'
+	@echo "  PUBLICACIÓN (GitHub + Pages)"
+	@grep -E '^## (release|changelog|deploy|serve):' Makefile | sed 's/## /    make /g'
 	@echo ""
 	@echo "  INTELIGENCIA ARTIFICIAL (Ollama – local, gratuito)"
 	@grep -E '^## ollama' Makefile | sed 's/## /    make /g'
@@ -87,9 +88,35 @@ check:
 	@command -v ollama >/dev/null 2>&1 && echo "    ✅ ollama instalado ($$(ollama --version 2>/dev/null || echo 'versión desconocida'))" || echo "    ℹ️  No instalado (opcional). Ver: https://ollama.com"
 	@echo ""
 
-# ─── DESPLIEGUE ──────────────────────────────────────────────
+# ─── PUBLICACIÓN ─────────────────────────────────────────────
 
-## deploy-gh: Desplegar en GitHub Pages
+## release: Publicar nueva versión (VERSION=x.y.z requerido). Ej: make release VERSION=1.4.0
+release:
+	@if [ -z "$(VERSION)" ]; then \
+	  echo "❌  Falta VERSION. Uso: make release VERSION=1.4.0"; exit 1; \
+	fi
+	@bash scripts/release.sh $(VERSION)
+
+## release-dry: Simular publicación sin hacer push ni crear tags (VERSION=x.y.z)
+release-dry:
+	@echo "🔍 Simulando release $(VERSION) (dry-run – sin push ni tags)"
+	@git status --short
+	@echo "  Versión actual: $$(node -p "require('./package.json').version")"
+	@echo "  Versión nueva:  $(VERSION)"
+	@echo "  Tag a crear:    v$(VERSION)"
+	@echo "  Rama actual:    $$(git rev-parse --abbrev-ref HEAD)"
+	@echo "  Commits a publicar:"
+	@git log origin/main..HEAD --oneline | head -10
+	@echo ""
+	@echo "✅ Dry-run OK. Ejecuta 'make release VERSION=$(VERSION)' para publicar."
+
+## changelog: Abrir CHANGELOG.md para editar antes de publicar
+changelog:
+	@echo "📝 Edita la sección [Unreleased] en CHANGELOG.md"
+	@echo "   Luego ejecuta: make release VERSION=x.y.z"
+	@$(EDITOR:-open) CHANGELOG.md 2>/dev/null || open CHANGELOG.md || cat CHANGELOG.md
+
+## deploy-gh: Desplegar manualmente en GitHub Pages (sin crear versión)
 deploy-gh: build
 	@echo "🚀 Desplegando en GitHub Pages..."
 	npx gh-pages -d dist

@@ -17,17 +17,20 @@ Progressive Web App (PWA) gratuita y de código abierto para adultos con enferme
 |--------|-------------|
 | 👥 **Multiperfil** | Titular + perfiles familiares (esposa, hijo, cuidador...) |
 | 📋 **Expediente FHIR R4** | Diagnósticos, alergias, vacunas, cirugías, antecedentes familiares |
-| 💊 **Medicamentos** | Recordatorios por voz, inventario con alertas, registro de toma |
+| 💊 **Medicamentos** | Recordatorios por voz, inventario con alertas, registro de toma, ⭐ calificación |
 | 📅 **Agenda médica** | Citas, doctores vinculados, vista semanal |
 | 😊 **Diario de síntomas** | Escala de dolor con caritas, grabación de voz, foto |
+| 🔬 **Exámenes médicos** | Laboratorios, radiología e imagen, procedimientos especiales (PET, endoscopías, I-131…) con resultados, nota de voz, resumen IA y ⭐ calificación |
+| 🏥 **Proveedores de salud** | Inventario de hospitales, clínicas, labs, farmacias y centros de diagnóstico con nota de voz, resumen IA y ⭐ calificación |
+| ⭐ **Calificaciones** | Evalúa doctores, medicamentos, exámenes y proveedores (1-5 estrellas + comentario) |
 | 📷 **Escaneo OCR** | Foto de documentos + extracción de texto |
 | 🎙 **Grabación consulta** | Graba consultas médicas con notas y resumen |
 | 📈 **Progreso** | Soles que crecen, racha de días, mensajes motivadores |
 | 🔗 **Compartir temporal** | QR + enlace de 24 horas para médicos |
-| 🔒 **Autenticación** | PIN de 4 dígitos |
-| 💾 **Respaldo cifrado** | Archivo `.vsm` con AES-256-GCM |
+| 🔒 **Autenticación** | PIN de 4 dígitos + biometría (WebAuthn) |
+| 💾 **Respaldo cifrado** | Archivo `.vsm` con AES-256-GCM (incluye exámenes y proveedores) |
 | 🗣 **Voz en español** | Narración femenina dulce en es-MX |
-| 🤖 **IA opcional** | Análisis y asistencia con tu propio proveedor (Ollama local o nube) |
+| 🤖 **IA opcional** | Análisis, resúmenes y asistencia con tu propio proveedor (Ollama local o nube) |
 
 ---
 
@@ -181,6 +184,8 @@ src/
     ├── Scan.tsx             # OCR + grabación de consultas
     ├── ShareExport.tsx      # QR + respaldo cifrado
     ├── Settings.tsx         # Configuración + autoría + donativos
+    ├── MedicalExams.tsx     # Exámenes médicos (lab, radiología, procedimientos)
+    ├── ServiceProviders.tsx # Proveedores de servicios médicos
     ├── AISettings.tsx       # Configuración de proveedor IA (Ollama/nube)
     └── AIFeatureInfo.tsx    # Componente informativo de funciones con IA
 ```
@@ -261,13 +266,45 @@ La app siempre será gratuita. Los donativos ayudan a mantener y mejorar el proy
 
 ---
 
+## 📋 Historial de versiones
+
+Ver [CHANGELOG.md](CHANGELOG.md) para la historia completa de cambios.
+
+| Versión | Fecha | Descripción |
+|---------|-------|-------------|
+| **1.3.0** | 2026-03-25 | Exámenes médicos, proveedores de salud, calificaciones ⭐ |
+| **1.2.0** | 2026-03-18 | Fotos en medicamentos, doctores y citas |
+| **1.1.0** | 2026-03-10 | Inteligencia Artificial opcional (5 proveedores) |
+| **1.0.0** | 2026-03-01 | Lanzamiento inicial |
+
+---
+
+## 🚀 Publicar una nueva versión
+
+```bash
+# Prepara el [Unreleased] en CHANGELOG.md, luego:
+make release VERSION=1.4.0
+
+# Esto hace automáticamente:
+#  ✅ Verifica rama main y estado limpio de git
+#  ✅ Actualiza versión en package.json
+#  ✅ Construye la app (falla rápido si hay errores)
+#  ✅ Commit de versión con convención Conventional Commits
+#  ✅ Tag anotado v1.4.0
+#  ✅ Push a origin (activa CI → GitHub Pages)
+#  ✅ GitHub Release con notas automáticas
+```
+
+---
+
 ## 🤝 Contribuir
 
 ¡Las contribuciones son bienvenidas! Por favor:
 
 1. Abre un issue describiendo el cambio
 2. Haz fork y crea una rama `feature/tu-mejora`
-3. Envía un Pull Request
+3. Documenta tus cambios en `CHANGELOG.md` bajo `[Unreleased]`
+4. Envía un Pull Request
 
 ---
 
