@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { speak, generateId, saveAppState } from '../storage'
-import type { AppState, Profile } from '../types'
+import type { AppState, Profile, AIConfig } from '../types'
+import AISettings from './AISettings'
 
 interface OnboardingProps {
   onComplete: (state: AppState) => void
@@ -9,7 +10,7 @@ interface OnboardingProps {
 const RELATION_SUGGESTIONS = ['esposa', 'esposo', 'hijo', 'hija', 'padre', 'madre', 'hermano', 'hermana', 'amigo', 'amiga', 'cuidador', 'cuidadora']
 const AVATARS = ['🧑', '👩', '👨', '👵', '👴', '🧒', '👧', '👦', '🧑‍⚕️', '💛', '💚', '🌻']
 
-type Step = 'name' | 'avatar' | 'pin' | 'done'
+type Step = 'name' | 'avatar' | 'pin' | 'ai' | 'done'
 
 export default function Onboarding({ onComplete }: OnboardingProps) {
   const [step, setStep] = useState<Step>('name')
@@ -19,6 +20,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [pinConfirm, setPinConfirm] = useState('')
   const [pinError, setPinError] = useState('')
   const [usePIN, setUsePIN] = useState(false)
+  // Estado temporal de IA durante el onboarding
+  const [pendingAiConfig, setPendingAiConfig] = useState<AIConfig | null>(null)
 
   function goName() {
     if (!name.trim()) return
@@ -31,7 +34,12 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     setStep('pin')
   }
 
-  async function finish() {
+  function goAI() {
+    speak('Configura la inteligencia artificial o continúa sin ella.')
+    setStep('ai')
+  }
+
+  async function finish(aiConfig: AIConfig | null = pendingAiConfig) {
     if (usePIN) {
       if (pin.length !== 4) { setPinError('El PIN debe tener 4 dígitos'); return }
       if (pin !== pinConfirm) { setPinError('Los PINes no coinciden'); return }
@@ -52,7 +60,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       agreementAccepted: true,
       pinHash: null,
       authMethod: 'none',
-      encryptionKey: null
+      encryptionKey: null,
+      aiConfig: aiConfig ?? null
     }
     if (usePIN) {
       const { hashPin } = await import('../storage')
@@ -168,9 +177,36 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </>
             )}
 
-            <button className="btn btn-primary btn-full" onClick={finish}>
-              {avatar} ¡Listo, empecemos!
+            <button className="btn btn-primary btn-full" onClick={goAI}>
+              Continuar →
             </button>
+          </div>
+        </>
+      )}
+
+      {step === 'ai' && (
+        <>
+          <div className="onboarding-logo">🤖</div>
+          <h1 className="onboarding-title">¿Usar Inteligencia Artificial?</h1>
+          <p className="onboarding-subtitle" style={{ textAlign: 'center', maxWidth: 360, marginBottom: 8 }}>
+            Opcional. Permite funciones como análisis de síntomas o resúmenes de consultas.
+            Requiere tu propia clave API de un proveedor externo.
+          </p>
+          <div style={{ width: '100%', maxWidth: 400 }}>
+            {/* Usamos un AppState provisional solo para pasar a AISettings */}
+            <AISettings
+              appState={{
+                profiles: [], activeProfileId: null,
+                onboardingDone: false, agreementAccepted: true,
+                pinHash: null, authMethod: 'none', encryptionKey: null,
+                aiConfig: pendingAiConfig
+              }}
+              onSave={updatedState => {
+                setPendingAiConfig(updatedState.aiConfig ?? null)
+                finish(updatedState.aiConfig ?? null)
+              }}
+              onSkip={() => finish(null)}
+            />
           </div>
         </>
       )}

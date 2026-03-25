@@ -78,7 +78,8 @@ export default function App() {
         const newState: AppState = {
           profiles: [], activeProfileId: null,
           onboardingDone: false, agreementAccepted: true,
-          pinHash: null, authMethod: 'none', encryptionKey: null
+          pinHash: null, authMethod: 'none', encryptionKey: null,
+          aiConfig: null
         }
         await saveAppState(newState)
         setAppState(newState)
@@ -179,7 +180,7 @@ export default function App() {
 
       {/* Contenido principal */}
       <main className="main-content">
-        {view === 'dashboard' && <Dashboard profile={activeProfile} onNavigate={setView} />}
+        {view === 'dashboard' && <Dashboard profile={activeProfile} onNavigate={setView} aiConfig={appState.aiConfig} />}
         {view === 'medications' && <Medications profile={activeProfile} showToast={showToast} />}
         {view === 'record' && <MedicalRecordView profile={activeProfile} showToast={showToast} />}
         {view === 'symptoms' && <SymptomDiary profile={activeProfile} showToast={showToast} />}

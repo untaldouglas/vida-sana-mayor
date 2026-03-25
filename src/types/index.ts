@@ -20,6 +20,7 @@ export interface AppState {
   pinHash: string | null
   authMethod: 'none' | 'pin' | 'biometric'
   encryptionKey: string | null  // derivado del PIN, guardado cifrado
+  aiConfig?: AIConfig | null    // configuración opcional de IA del usuario
 }
 
 // FHIR R4 - Expediente clínico
@@ -189,6 +190,21 @@ export interface ShareToken {
   profileId: string
   expiresAt: string
   sections: string[]
+}
+
+// ============================================================
+// Inteligencia Artificial – configuración por usuario
+// ============================================================
+
+export type AIProvider = 'anthropic' | 'openai' | 'google' | 'mistral' | 'ollama'
+
+export interface AIConfig {
+  provider: AIProvider
+  apiKey: string          // almacenado localmente; vacío para Ollama (local, sin costo)
+  model: string
+  baseUrl?: string        // URL base; requerida para Ollama (ej: http://localhost:11434)
+  acceptedTerms: boolean  // el usuario aceptó los términos de costos
+  acceptedDate: string    // ISO date de aceptación
 }
 
 // Vista activa

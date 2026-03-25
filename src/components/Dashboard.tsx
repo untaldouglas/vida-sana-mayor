@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { getMedicalRecord, getAppointments, getProgress, speak } from '../storage'
-import type { Profile, MedicalRecord, Appointment, ProgressRecord, AppView } from '../types'
+import type { Profile, MedicalRecord, Appointment, ProgressRecord, AppView, AIConfig } from '../types'
+import AIFeatureInfo from './AIFeatureInfo'
 
 interface DashboardProps {
   profile: Profile
   onNavigate: (view: AppView) => void
+  aiConfig?: AIConfig | null
 }
 
 const POSITIVE_MESSAGES = [
@@ -15,7 +17,7 @@ const POSITIVE_MESSAGES = [
   '¡Sigue adelante, vas muy bien! 🌿',
 ]
 
-export default function Dashboard({ profile, onNavigate }: DashboardProps) {
+export default function Dashboard({ profile, onNavigate, aiConfig }: DashboardProps) {
   const [record, setRecord] = useState<MedicalRecord | null>(null)
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [progress, setProgress] = useState<ProgressRecord | null>(null)
@@ -196,6 +198,34 @@ export default function Dashboard({ profile, onNavigate }: DashboardProps) {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* IA: banner informativo */}
+      {!aiConfig ? (
+        <div className="card">
+          <h3 className="card-title">🤖 Inteligencia Artificial disponible</h3>
+          <AIFeatureInfo
+            mode="banner"
+            onConfigureAI={() => onNavigate('settings')}
+          />
+        </div>
+      ) : (
+        <div className="card" style={{
+          background: 'linear-gradient(135deg, rgba(25,118,210,0.06) 0%, rgba(138,154,91,0.06) 100%)',
+          border: '1.5px solid rgba(138,154,91,0.25)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: '1.4rem' }}>🤖</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>IA activa</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>
+                {aiConfig.provider === 'ollama'
+                  ? `🦙 Ollama local · ${aiConfig.model} · Sin costo`
+                  : `${aiConfig.provider} · ${aiConfig.model}`}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { saveAppState, hashPin, importBackup } from '../storage'
 import type { AppState, Profile } from '../types'
 import { AddProfileModal } from './Onboarding'
+import AISettings from './AISettings'
 
 interface SettingsProps {
   appState: AppState
@@ -150,15 +151,97 @@ export default function Settings({ appState, onStateChange, showToast }: Setting
         </label>
       </div>
 
-      {/* Información */}
+      {/* Inteligencia Artificial */}
+      <div className="card">
+        <h3 className="card-title">🤖 Inteligencia Artificial</h3>
+        <AISettings
+          appState={appState}
+          onSave={async updated => {
+            await saveAppState(updated)
+            onStateChange(updated)
+          }}
+          showToast={showToast}
+        />
+      </div>
+
+      {/* Autoría, Licencia y Donativos */}
       <div className="card" style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>☀️</div>
-        <h3 style={{ fontWeight: 800, marginBottom: 4 }}>Vida Sana Mayor</h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Versión 1.0.0</p>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: 4 }}>
-          Apache 2.0 · Open Source · 100% offline
+        <div style={{ fontSize: '2.8rem', marginBottom: 8 }}>☀️</div>
+        <h3 style={{ fontWeight: 800, fontSize: '1.15rem', marginBottom: 2 }}>Vida Sana Mayor</h3>
+        <p style={{ fontSize: '0.83rem', color: 'var(--text-light)', marginBottom: 12 }}>
+          Versión 1.0.0 · 100% offline · Open Source
         </p>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-light)', marginTop: 8 }}>
+
+        {/* Autor */}
+        <div style={{
+          background: 'rgba(138,154,91,0.1)', border: '1.5px solid rgba(138,154,91,0.3)',
+          borderRadius: 10, padding: '12px 16px', marginBottom: 12, textAlign: 'left'
+        }}>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: 4, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            Autor
+          </p>
+          <p style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 2 }}>Douglas Galindo</p>
+          <a
+            href="https://www.untaldouglas.info/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              color: '#0A66C2', fontWeight: 700, fontSize: '0.88rem',
+              textDecoration: 'none', padding: '4px 0'
+            }}
+          >
+            <span style={{ fontSize: '1rem' }}>🔗</span>
+            @untaldouglas · untaldouglas.info
+          </a>
+        </div>
+
+        {/* Licencia */}
+        <div style={{
+          background: 'rgba(0,0,0,0.03)', border: '1.5px solid var(--border)',
+          borderRadius: 10, padding: '12px 16px', marginBottom: 12, textAlign: 'left'
+        }}>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: 6, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            Licencia de uso
+          </p>
+          <p style={{ fontWeight: 800, fontSize: '0.92rem', marginBottom: 4 }}>
+            Apache License 2.0
+          </p>
+          <p style={{ fontSize: '0.83rem', color: 'var(--text-light)', lineHeight: 1.55 }}>
+            Esta aplicación es <strong>gratuita y de código abierto</strong>. Puedes usarla,
+            copiarla y distribuirla respetando los términos de la licencia Apache 2.0.
+            No se permite su venta ni la eliminación de los créditos del autor.
+          </p>
+        </div>
+
+        {/* Donativos */}
+        <div style={{
+          background: '#FFF8E1', border: '2px solid #F4C430',
+          borderRadius: 10, padding: '12px 16px', marginBottom: 4, textAlign: 'left'
+        }}>
+          <p style={{ fontSize: '0.78rem', color: '#8B6914', marginBottom: 4, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            Apoya el proyecto
+          </p>
+          <p style={{ fontSize: '0.85rem', color: '#5D4E10', lineHeight: 1.55, marginBottom: 10 }}>
+            Vida Sana Mayor es gratuita y siempre lo será. Si te ha sido útil, considera
+            hacer una donación voluntaria para apoyar su desarrollo y mantenimiento. ☀️
+          </p>
+          <a
+            href="https://ko-fi.com/untaldouglas"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: '#FF5E5B', color: 'white', fontWeight: 800, fontSize: '0.92rem',
+              padding: '11px 16px', borderRadius: 10, textDecoration: 'none',
+              boxShadow: '0 3px 8px rgba(255,94,91,0.35)', transition: 'opacity 0.15s'
+            }}
+          >
+            ☕ Donar en Ko-fi · ko-fi.com/untaldouglas
+          </a>
+        </div>
+
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: 10 }}>
           Desarrollado con ❤️ para adultos con enfermedades crónicas
         </p>
       </div>
