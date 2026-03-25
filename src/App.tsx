@@ -15,6 +15,8 @@ import Progress from './components/Progress'
 import Scan from './components/Scan'
 import ShareExport from './components/ShareExport'
 import Settings from './components/Settings'
+import MedicalExams from './components/MedicalExams'
+import ServiceProviders from './components/ServiceProviders'
 import { AddProfileModal } from './components/Onboarding'
 
 // ---- Toast ----
@@ -127,6 +129,8 @@ export default function App() {
     share: '📤 Compartir',
     settings: '⚙️ Configuración',
     backup: '💾 Respaldo',
+    exams: '🔬 Exámenes médicos',
+    providers: '🏥 Mis proveedores',
   }
 
   return (
@@ -189,6 +193,8 @@ export default function App() {
         {view === 'progress' && <Progress profile={activeProfile} />}
         {view === 'scan' && <Scan profile={activeProfile} showToast={showToast} />}
         {view === 'share' && <ShareExport profile={activeProfile} appState={appState} showToast={showToast} />}
+        {view === 'exams' && <MedicalExams profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
+        {view === 'providers' && <ServiceProviders profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
         {view === 'settings' && (
           <Settings
             appState={appState}
@@ -204,6 +210,8 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
                 { icon: '📋', label: 'Expediente clínico', v: 'record' as AppView },
+                { icon: '🔬', label: 'Exámenes médicos', v: 'exams' as AppView },
+                { icon: '🏥', label: 'Proveedores de salud', v: 'providers' as AppView },
                 { icon: '👨‍⚕️', label: 'Mis doctores', v: 'doctors' as AppView },
                 { icon: '📈', label: 'Mi progreso', v: 'progress' as AppView },
                 { icon: '📷', label: 'Escaneo y grabación', v: 'scan' as AppView },
@@ -235,7 +243,7 @@ export default function App() {
         {NAV_ITEMS.map(item => (
           <button
             key={item.view}
-            className={`nav-btn ${view === item.view || (item.view === 'settings' && ['settings','record','doctors','progress','scan','share'].includes(view)) ? 'active' : ''}`}
+            className={`nav-btn ${view === item.view || (item.view === 'settings' && ['settings','record','doctors','progress','scan','share','exams','providers'].includes(view)) ? 'active' : ''}`}
             onClick={() => setView(item.view)}
           >
             <span className="nav-icon">{item.icon}</span>

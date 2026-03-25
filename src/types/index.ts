@@ -64,6 +64,7 @@ export interface Medication {
   lastTaken?: string
   takenHistory: TakenRecord[]
   imageFileIds?: string[]    // fotos de la caja/receta
+  rating?: number            // 1-5 estrellas
 }
 
 export interface TakenRecord {
@@ -130,6 +131,9 @@ export interface Doctor {
   diagnosisIds: string[]
   notes?: string
   imageFileIds?: string[]    // foto de credencial, consultorio, etc.
+  rating?: number            // 1-5 estrellas
+  ratingNotes?: string
+  audioNoteId?: string
 }
 
 // Cita médica
@@ -171,11 +175,11 @@ export interface ProgressRecord {
   messages: string[]
 }
 
-// Archivo adjunto (audio, foto, scan)
+// Archivo adjunto (audio, foto, scan, documento)
 export interface MediaFile {
   id: string
   profileId: string
-  type: 'audio' | 'photo' | 'scan'
+  type: 'audio' | 'photo' | 'scan' | 'document'
   mimeType: string
   name: string
   createdAt: string
@@ -207,6 +211,81 @@ export interface AIConfig {
   acceptedDate: string    // ISO date de aceptación
 }
 
+// ============================================================
+// Exámenes médicos especiales
+// ============================================================
+
+export type ExamCategory = 'laboratorio' | 'radiologia' | 'procedimiento'
+
+export type ExamStatus = 'pendiente' | 'en_proceso' | 'completado' | 'cancelado'
+
+export interface MedicalExam {
+  id: string
+  profileId: string
+  category: ExamCategory
+  examType: string          // "PET scan", "Hemograma", "Endoscopía alta", etc.
+  date: string
+  status: ExamStatus
+  doctorId?: string
+  doctorName?: string
+  providerId?: string
+  providerName?: string
+  indication?: string       // indicación médica / orden
+  result?: string           // resultado
+  interpretation?: string   // interpretación del médico
+  userNotes?: string        // notas del paciente
+  audioFileId?: string      // nota de voz
+  aiSummary?: string        // resumen generado por IA
+  imageFileIds?: string[]   // fotos de resultados, radiografías, documentos
+  rating?: number           // 1-5 estrellas
+  createdAt: string
+}
+
+// ============================================================
+// Proveedores de servicios médicos
+// ============================================================
+
+export type ProviderCategory =
+  | 'hospital'
+  | 'clinica'
+  | 'laboratorio'
+  | 'farmacia'
+  | 'consultorio'
+  | 'centro_diagnostico'
+  | 'otro'
+
+export interface ServiceProvider {
+  id: string
+  profileId: string
+  name: string
+  category: ProviderCategory
+  subcategory?: string
+  address?: string
+  phone?: string
+  website?: string
+  notes?: string
+  audioNoteId?: string
+  aiSummary?: string
+  imageFileIds?: string[]
+  rating?: number           // 1-5 estrellas
+  ratingNotes?: string
+  createdAt: string
+}
+
+// ============================================================
+// Calificaciones genéricas (doctores, medicamentos, tratamientos)
+// ============================================================
+
+export interface Rating {
+  id: string                // `${entityType}_${entityId}`
+  profileId: string
+  entityType: 'doctor' | 'provider' | 'medication' | 'exam' | 'diagnosis'
+  entityId: string
+  score: number             // 1-5
+  notes?: string
+  date: string
+}
+
 // Vista activa
 export type AppView =
   | 'agreement'
@@ -223,3 +302,5 @@ export type AppView =
   | 'share'
   | 'settings'
   | 'backup'
+  | 'exams'
+  | 'providers'

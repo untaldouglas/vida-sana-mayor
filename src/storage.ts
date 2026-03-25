@@ -6,11 +6,12 @@
 import { openDB, IDBPDatabase } from 'idb'
 import type {
   AppState, Profile, MedicalRecord, Doctor, Appointment,
-  SymptomEntry, ProgressRecord, MediaFile, ShareToken
+  SymptomEntry, ProgressRecord, MediaFile, ShareToken,
+  MedicalExam, ServiceProvider, Rating
 } from './types'
 
 const DB_NAME = 'vida-sana-mayor'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 // --------------- Cifrado AES-256-GCM ---------------
 
@@ -109,6 +110,21 @@ async function getDB(): Promise<IDBPDatabase> {
       if (!db.objectStoreNames.contains('shareTokens')) {
         db.createObjectStore('shareTokens', { keyPath: 'token' })
       }
+      // v2: Exámenes médicos y proveedores de servicio
+      if (!db.objectStoreNames.contains('medicalExams')) {
+        const examStore = db.createObjectStore('medicalExams', { keyPath: 'id' })
+        examStore.createIndex('profileId', 'profileId')
+        examStore.createIndex('date', 'date')
+      }
+      if (!db.objectStoreNames.contains('serviceProviders')) {
+        const provStore = db.createObjectStore('serviceProviders', { keyPath: 'id' })
+        provStore.createIndex('profileId', 'profileId')
+      }
+      if (!db.objectStoreNames.contains('ratings')) {
+        const ratStore = db.createObjectStore('ratings', { keyPath: 'id' })
+        ratStore.createIndex('profileId', 'profileId')
+        ratStore.createIndex('entityId', 'entityId')
+      }
     }
   })
   return _db
@@ -156,6 +172,12 @@ export async function deleteProfile(profileId: string): Promise<void> {
   for (const s of symps) await db.delete('symptoms', s.id)
   const medias = await db.getAllFromIndex('media', 'profileId', profileId)
   for (const m of medias) await db.delete('media', m.id)
+  const exams = await db.getAllFromIndex('medicalExams', 'profileId', profileId)
+  for (const e of exams) await db.delete('medicalExams', e.id)
+  const providers = await db.getAllFromIndex('serviceProviders', 'profileId', profileId)
+  for (const p of providers) await db.delete('serviceProviders', p.id)
+  const ratings = await db.getAllFromIndex('ratings', 'profileId', profileId)
+  for (const r of ratings) await db.delete('ratings', r.id)
 }
 
 // --------------- Expediente clínico ---------------
@@ -276,6 +298,59 @@ export async function deleteMedia(id: string): Promise<void> {
   await db.delete('media', id)
 }
 
+// --------------- Exámenes médicos ---------------
+
+export async function getMedicalExams(profileId: string): Promise<MedicalExam[]> {
+  const db = await getDB()
+  const all = await db.getAllFromIndex('medicalExams', 'profileId', profileId)
+  return all.sort((a, b) => b.date.localeCompare(a.date))
+}
+
+export async function saveMedicalExam(exam: MedicalExam): Promise<void> {
+  const db = await getDB()
+  await db.put('medicalExams', exam)
+}
+
+export async function deleteMedicalExam(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('medicalExams', id)
+}
+
+// --------------- Proveedores de servicio ---------------
+
+export async function getServiceProviders(profileId: string): Promise<ServiceProvider[]> {
+  const db = await getDB()
+  const all = await db.getAllFromIndex('serviceProviders', 'profileId', profileId)
+  return all.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export async function saveServiceProvider(provider: ServiceProvider): Promise<void> {
+  const db = await getDB()
+  await db.put('serviceProviders', provider)
+}
+
+export async function deleteServiceProvider(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('serviceProviders', id)
+}
+
+// --------------- Calificaciones ---------------
+
+export async function saveRating(rating: Rating): Promise<void> {
+  const db = await getDB()
+  await db.put('ratings', rating)
+}
+
+export async function getRating(entityType: string, entityId: string): Promise<Rating | undefined> {
+  const db = await getDB()
+  return db.get('ratings', `${entityType}_${entityId}`)
+}
+
+export async function deleteRating(entityType: string, entityId: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('ratings', `${entityType}_${entityId}`)
+}
+
 // --------------- Compartir (token temporal 24h) ---------------
 
 export async function createShareToken(profileId: string, sections: string[]): Promise<ShareToken> {
@@ -311,7 +386,9 @@ export async function exportBackup(appState: AppState, pin: string): Promise<Blo
       doctors: await getDoctors(profile.id),
       appointments: await getAppointments(profile.id),
       symptoms: await getSymptoms(profile.id),
-      progress: await getProgress(profile.id)
+      progress: await getProgress(profile.id),
+      medicalExams: await getMedicalExams(profile.id),
+      serviceProviders: await getServiceProviders(profile.id)
     }
   }
   const payload = JSON.stringify({ appState, records, exportedAt: new Date().toISOString() })

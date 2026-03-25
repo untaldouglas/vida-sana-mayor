@@ -201,6 +201,7 @@ function MedForm({ initial, profileId, onSave, onClose }: {
   const [stockAlert, setStockAlert] = useState(String(initial?.stockAlert ?? 5))
   const [notes, setNotes] = useState(initial?.notes ?? '')
   const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
+  const [rating, setRating] = useState<number>(initial?.rating ?? 0)
 
   function save() {
     const med: Medication = {
@@ -216,7 +217,8 @@ function MedForm({ initial, profileId, onSave, onClose }: {
       notes: notes.trim() || undefined,
       lastTaken: initial?.lastTaken,
       takenHistory: initial?.takenHistory ?? [],
-      imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined
+      imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined,
+      rating: rating > 0 ? rating : undefined
     }
     onSave(med)
   }
@@ -287,6 +289,18 @@ function MedForm({ initial, profileId, onSave, onClose }: {
             label="📷 Fotos (caja, receta, indicaciones)"
             maxImages={4}
           />
+        </div>
+
+        <div className="form-group">
+          <label>⭐ Calificación del medicamento</label>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            {[1,2,3,4,5].map(star => (
+              <button key={star} type="button" onClick={() => setRating(star === rating ? 0 : star)}
+                style={{ fontSize: '1.6rem', background: 'none', border: 'none', cursor: 'pointer', padding: 2, minHeight: 'unset', filter: star <= rating ? 'none' : 'grayscale(1) opacity(0.3)', transition: 'filter 0.15s' }}>⭐</button>
+            ))}
+            {rating > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-light)', marginLeft: 4 }}>{rating}/5</span>}
+          </div>
+          {rating === 0 && <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: 4 }}>¿Qué tan efectivo/tolerable es?</p>}
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>

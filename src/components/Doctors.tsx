@@ -70,6 +70,13 @@ export default function Doctors({ profile, showToast }: DoctorsProps) {
                     🩺 {getDiagnosisNames(doc.diagnosisIds)}
                   </div>
                 )}
+                {doc.rating && doc.rating > 0 && (
+                  <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
+                    {[1,2,3,4,5].map(s => (
+                      <span key={s} style={{ fontSize: '0.9rem', filter: s <= (doc.rating ?? 0) ? 'none' : 'grayscale(1) opacity(0.3)' }}>⭐</span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {doc.phone && (
@@ -114,6 +121,8 @@ function DoctorForm({ initial, diagnoses, profileId, onSave, onClose }: {
   const [notes, setNotes] = useState(initial?.notes ?? '')
   const [diagnosisIds, setDiagnosisIds] = useState<string[]>(initial?.diagnosisIds ?? [])
   const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
+  const [rating, setRating] = useState<number>(initial?.rating ?? 0)
+  const [ratingNotes, setRatingNotes] = useState(initial?.ratingNotes ?? '')
 
   function toggleDiag(id: string) {
     setDiagnosisIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
@@ -156,9 +165,22 @@ function DoctorForm({ initial, diagnoses, profileId, onSave, onClose }: {
             maxImages={4}
           />
         </div>
+        <div className="form-group">
+          <label>⭐ Calificación del doctor</label>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            {[1,2,3,4,5].map(star => (
+              <button key={star} type="button" onClick={() => setRating(star === rating ? 0 : star)}
+                style={{ fontSize: '1.6rem', background: 'none', border: 'none', cursor: 'pointer', padding: 2, minHeight: 'unset', filter: star <= rating ? 'none' : 'grayscale(1) opacity(0.3)', transition: 'filter 0.15s' }}>⭐</button>
+            ))}
+            {rating > 0 && <span style={{ fontSize: '0.8rem', color: 'var(--text-light)', marginLeft: 4 }}>{rating}/5</span>}
+          </div>
+          {rating > 0 && (
+            <input type="text" value={ratingNotes} onChange={e => setRatingNotes(e.target.value)} placeholder="¿Por qué le diste esta calificación?" style={{ marginTop: 8 }} />
+          )}
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
-          <button className="btn btn-primary" onClick={() => onSave({ id: initial?.id ?? generateId(), name, specialty, phone: phone || undefined, address: address || undefined, notes: notes || undefined, diagnosisIds, imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined })} disabled={!name} style={{ flex: 2 }}>💾 Guardar</button>
+          <button className="btn btn-primary" onClick={() => onSave({ id: initial?.id ?? generateId(), name, specialty, phone: phone || undefined, address: address || undefined, notes: notes || undefined, diagnosisIds, imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined, rating: rating > 0 ? rating : undefined, ratingNotes: ratingNotes.trim() || undefined })} disabled={!name} style={{ flex: 2 }}>💾 Guardar</button>
         </div>
       </div>
     </div>
