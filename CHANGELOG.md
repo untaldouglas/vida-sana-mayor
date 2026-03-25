@@ -16,13 +16,6 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 ## [1.3.0] – 2026-03-25
 
 ### Añadido
-- Ver commit history para esta versión.
-
----
-
-## [1.3.0] – 2026-03-25
-
-### Añadido
 - **Módulo Exámenes Médicos** (`MedicalExams`) – gestión de laboratorios clínicos,
   radiología e imagen, y procedimientos especiales (PET, endoscopías, yodo radioactivo,
   colonoscopía, etc.) con +55 tipos predefinidos por categoría
@@ -106,7 +99,6 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 ---
 
 [Unreleased]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.3.0...HEAD
-[1.3.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/PREV...v1.3.0
 [1.3.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.0.0...v1.1.0

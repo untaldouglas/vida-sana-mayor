@@ -105,56 +105,27 @@ if [[ ! -f "$CHANGELOG" ]]; then
 CHEOF
 else
   # Verificar si hay sección [Unreleased] con contenido
-  if grep -q "## \[Unreleased\]" "$CHANGELOG"; then
-    # Mover [Unreleased] a la nueva versión
-    python3 - << PYEOF
-import re, sys
-
-content = open('$CHANGELOG').read()
-
-# Reemplazar la cabecera [Unreleased]
-today = '$TODAY'
-version = '$VERSION'
-tag = '$TAG'
-repo = '$REPO_URL'
-
-# Añadir la nueva versión después de [Unreleased]
-new_version_header = f'## [{version}] – {today}\n'
-content = content.replace(
-    '## [Unreleased]\n\n> Añade aquí lo que ya está en \`main\` pero aún no tiene versión.\n',
-    f'## [Unreleased]\n\n> Añade aquí lo que ya está en \`main\` pero aún no tiene versión.\n\n---\n\n{new_version_header}\n### Añadido\n- Ver commit history para esta versión.\n'
-)
-
-# Actualizar links al final (si existen)
-content = re.sub(
-    r'\[Unreleased\]: .+',
-    f'[Unreleased]: {repo}/compare/{tag}...HEAD\n[{version}]: {repo}/compare/PREV...{tag}',
-    content
-)
-
-open('$CHANGELOG', 'w').write(content)
-print('  CHANGELOG.md actualizado')
-PYEOF
-    ok "CHANGELOG.md – sección ${VERSION} creada"
-  else
-    warn "No se encontró ## [Unreleased] en CHANGELOG.md. Añade cambios manualmente si es necesario."
+  # Solo modificar si la versión aún no está en el CHANGELOG
+  if grep -q "## \[${VERSION}\]" "$CHANGELOG"; then
+    ok "CHANGELOG.md – sección [${VERSION}] ya existe, sin cambios"
+  elif grep -q "## \[Unreleased\]" "$CHANGELOG"; then
+    warn "Sección [${VERSION}] no encontrada en CHANGELOG.md"
+    warn "Añade tus cambios bajo ## [Unreleased] antes de publicar."
+    warn "Continuando de todas formas..."
   fi
 fi
 
-# Actualizar link de versiones al final del CHANGELOG
+# Verificar que el link de esta versión existe en el footer
 python3 - << PYEOF2
-import re
-
 content = open('$CHANGELOG').read()
 tag = '$TAG'
 version = '$VERSION'
 repo = '$REPO_URL'
-
-# Asegurarse de que el link de esta versión existe
-if f'[{version}]' not in content:
+link_key = f'[{version}]:'
+if link_key not in content:
     content = content.rstrip() + f'\n[{version}]: {repo}/releases/tag/{tag}\n'
     open('$CHANGELOG', 'w').write(content)
-    print('  Link de versión añadido')
+    print('  Link de versión añadido al footer')
 PYEOF2
 
 # ─── Paso 4: Build ───────────────────────────────────────────
