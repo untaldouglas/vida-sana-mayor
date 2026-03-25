@@ -13,6 +13,30 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 
 ---
 
+## [1.4.0] – 2026-03-25
+
+### Añadido
+- **Skills de Claude Code** (slash commands en `.claude/commands/`) – cuatro comandos
+  que automatizan las tareas de desarrollo más repetitivas:
+  - `/nueva-funcion <desc>` – implementa feature completa (types, storage, componente, App.tsx, build, commit)
+  - `/publicar <versión>` – ciclo completo de release con validaciones y reporte de URLs
+  - `/actualizar-docs` – audita y sincroniza README y CHANGELOG con el código real
+  - `/estado` – snapshot instantáneo de versión, CI, Pages y siguiente acción sugerida
+- **Conector MCP: GitHub** (`.mcp.json`) – extiende Claude Code con acceso nativo a la
+  API de GitHub (crear issues, buscar código, gestionar PRs/releases) usando el token
+  del `gh` CLI ya configurado, sin configuración adicional
+- **Makefile targets**: `make skills-list`, `make skills-help`, `make mcp-test`, `make setup-dev`
+- **docs/HERRAMIENTAS_IA.md** – guía completa de skills, MCP y plantillas para agregar nuevos
+
+### Corregido
+- Entrada duplicada `[1.3.0]` generada automáticamente por el script de release
+
+### Infraestructura
+- GitHub Actions: Node.js 20 → 24 (anticipando deprecación de junio 2026)
+- `.gitignore`: skills del proyecto versionados, settings locales de Claude excluidos
+
+---
+
 ## [1.3.0] – 2026-03-25
 
 ### Añadido
@@ -98,7 +122,8 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 
 ---
 
-[Unreleased]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.0.0...v1.1.0
