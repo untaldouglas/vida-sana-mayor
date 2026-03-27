@@ -268,7 +268,13 @@ export async function getProgress(profileId: string): Promise<ProgressRecord> {
 
 export async function updateProgress(profileId: string): Promise<ProgressRecord> {
   const db = await getDB()
-  const progress = await getProgress(profileId)
+  let progress = await getProgress(profileId)
+
+  // Guardia defensiva: garantiza objeto válido ante cualquier fallo de idb
+  if (!progress || typeof progress.lastEntryDate !== 'string') {
+    progress = { profileId, streak: 0, totalEntries: 0, lastEntryDate: '', suns: 0, messages: [] }
+  }
+
   const today = new Date().toISOString().split('T')[0]
   if (progress.lastEntryDate !== today) {
     const yesterday = new Date(Date.now() - 86_400_000).toISOString().split('T')[0]

@@ -169,7 +169,7 @@ export default function Settings({ appState, onStateChange, showToast }: Setting
         <div style={{ fontSize: '2.8rem', marginBottom: 8 }}>☀️</div>
         <h3 style={{ fontWeight: 800, fontSize: '1.15rem', marginBottom: 2 }}>Vida Sana Mayor</h3>
         <p style={{ fontSize: '0.83rem', color: 'var(--text-light)', marginBottom: 12 }}>
-          Versión 1.0.0 · 100% offline · Open Source
+          Versión 1.4.0 · 100% offline · Open Source
         </p>
 
         {/* Autor */}

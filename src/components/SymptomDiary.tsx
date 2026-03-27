@@ -89,25 +89,29 @@ export default function SymptomDiary({ profile, showToast }: SymptomDiaryProps) 
     let photoFileId: string | undefined
 
     if (audioBlob) {
-      const buf = await audioBlob.arrayBuffer()
-      const mf: MediaFile = {
-        id: generateId(), profileId: profile.id, type: 'audio',
-        mimeType: 'audio/webm', name: `audio-${now.toISOString()}.webm`,
-        createdAt: now.toISOString(), data: buf, transcript
-      }
-      await saveMedia(mf)
-      audioFileId = mf.id
+      try {
+        const buf = await audioBlob.arrayBuffer()
+        const mf: MediaFile = {
+          id: generateId(), profileId: profile.id, type: 'audio',
+          mimeType: 'audio/webm', name: `audio-${now.toISOString()}.webm`,
+          createdAt: now.toISOString(), data: buf, transcript
+        }
+        await saveMedia(mf)
+        audioFileId = mf.id
+      } catch (e) { console.warn('Media audio no guardada:', e) }
     }
 
     if (photoFile) {
-      const buf = await photoFile.arrayBuffer()
-      const mf: MediaFile = {
-        id: generateId(), profileId: profile.id, type: 'photo',
-        mimeType: photoFile.type, name: photoFile.name,
-        createdAt: now.toISOString(), data: buf
-      }
-      await saveMedia(mf)
-      photoFileId = mf.id
+      try {
+        const buf = await photoFile.arrayBuffer()
+        const mf: MediaFile = {
+          id: generateId(), profileId: profile.id, type: 'photo',
+          mimeType: photoFile.type, name: photoFile.name,
+          createdAt: now.toISOString(), data: buf
+        }
+        await saveMedia(mf)
+        photoFileId = mf.id
+      } catch (e) { console.warn('Media foto no guardada:', e) }
     }
 
     const entry: SymptomEntry = {
@@ -122,8 +126,16 @@ export default function SymptomDiary({ profile, showToast }: SymptomDiaryProps) 
       photoFileId,
       tags: selectedTags
     }
-    await saveSymptom(entry)
-    await updateProgress(profile.id)
+
+    try {
+      await saveSymptom(entry)
+    } catch (e) {
+      showToast('⚠️ Error al guardar síntoma', 'error')
+      return
+    }
+
+    // Progreso auxiliar: no bloquea el cierre del formulario
+    updateProgress(profile.id).catch(e => console.warn('updateProgress falló:', e))
 
     const face = PAIN_FACES[painLevel]
     speak(`Síntoma registrado. Nivel de dolor: ${face.label}. ¡Gracias por cuidarte!`)

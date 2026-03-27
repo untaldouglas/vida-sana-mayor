@@ -12,16 +12,17 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "idb": "^8.0.0",
     "qrcode": "^1.5.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "tesseract.js": "^5.0.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
-    "@types/qrcode": "^1.5.5",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",

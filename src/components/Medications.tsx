@@ -37,8 +37,17 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
     })
     const updated = { ...record, medications: updatedMeds }
     setRecord(updated)
-    await saveMedicalRecord(updated)
-    await updateProgress(profile.id)
+
+    try {
+      await saveMedicalRecord(updated)
+    } catch (e) {
+      showToast('⚠️ Error al registrar', 'error')
+      return
+    }
+
+    // Progreso auxiliar: no bloquea el toast de éxito
+    updateProgress(profile.id).catch(e => console.warn('updateProgress falló:', e))
+
     const med = record.medications.find(m => m.id === medId)
     speak(`¡Muy bien! Registré que tomaste ${med?.name}.`)
     showToast(`✅ ${med?.name} registrado`, 'success')

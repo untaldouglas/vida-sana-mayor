@@ -1,5 +1,10 @@
 {
   "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "description": "Playwright MCP – automatización de browser: navegar, hacer clic, llenar formularios, tomar screenshots y scraping"
+    },
     "github": {
       "command": "bash",
       "args": [
