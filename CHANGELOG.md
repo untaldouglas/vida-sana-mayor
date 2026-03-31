@@ -13,6 +13,21 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 
 ---
 
+## [2.1.0] – 2026-03-31
+
+### Añadido
+- **Consultas médicas en el Expediente** – sección dedicada con vinculación 1:1 a doctor
+  existente o creación no duplicada de nuevo doctor inline (componente `DoctorSelector`)
+- **Doctor recetante en Medicamentos** – selector de doctor que recetó el medicamento;
+  si no hay doctor: registro de fuente de prescripción (auto-medicado, farmacéutico,
+  texto libre); enlace opcional a la consulta de origen
+- **Sistema de Tags** – etiquetas libres con taxonomía definida por el usuario
+  (nombre + categoría + color); tablas SQL `tags` y `entity_tags` con FK en cascade;
+  disponible en: Doctores, Medicamentos, Consultas, Diagnósticos, Exámenes, Proveedores
+  y Citas médicas; `TagPicker` inline en formularios + `TagManager` para el catálogo
+
+---
+
 ## [2.0.0] – 2026-03-31
 
 ### Cambio mayor (breaking)
