@@ -13,6 +13,44 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 
 ---
 
+## [2.0.0] – 2026-03-31
+
+### Cambio mayor (breaking)
+- **Motor de base de datos: IndexedDB → SQLite WASM** – toda la capa de persistencia
+  migrada a `sql.js` (SQLite compilado a WebAssembly), con `PRAGMA foreign_keys = ON`
+  en cada conexión. Los datos de versiones anteriores (formato IndexedDB v2) requieren
+  exportar respaldo (.vsm) antes de actualizar e importarlo tras la migración.
+
+### Añadido
+- **Integridad referencial a nivel de BD** – 21 tablas con `FOREIGN KEY` explícitas;
+  nunca gestionada solo en código de aplicación
+- **`ON DELETE CASCADE`** en todas las relaciones hijo↔padre: eliminar un perfil borra
+  automáticamente todo su árbol de datos (diagnósticos, medicamentos, citas, médicos,
+  exámenes, síntomas, media, etc.)
+- **`ON DELETE SET NULL`** en referencias opcionales: `medications.diagnosis_id`,
+  `appointments.doctor_id`, `consultations.doctor_id`, `medical_exams.doctor_id`,
+  `medical_exams.provider_id`, etc. — la entidad dependiente permanece sin perder datos
+- **6 tablas pivote M:N** con PK compuesta y FK a ambas tablas padre:
+  `doctor_diagnoses`, `doctor_media`, `medication_media`, `appointment_media`,
+  `exam_media`, `provider_media`
+- **`CHECK` constraints** en todos los campos de tipo enumerado (severity, status, type,
+  auth_method, category, etc.)
+- **Validación en capa de servicio** (`assertExists`) antes de insertar FK opcionales
+  (defensa en profundidad)
+- **`src/db/schema.ts`** – DDL completo documentado con comentarios de cardinalidad
+- **`src/db/database.ts`** – inicialización sql.js, `withTransaction`, `querySQL`, `runSQL`,
+  helpers IDB para binary blobs
+- **`src/vite-env.d.ts`** – tipos Vite/client para `import.meta.env`
+- **WASM precacheado** por el service worker (`sql-wasm.wasm` en globPatterns)
+
+### Arquitectura
+- Binary blobs (audio, fotos) almacenados en IDB `vsm-blobs` separado por rendimiento;
+  limpiados explícitamente antes del `DELETE` SQL (único punto fuera del FK scope)
+- `withTransaction` garantiza atomicidad: `BEGIN / COMMIT / ROLLBACK + persistSQL()`
+- Consistencia de tipos: todos los PK/FK son `TEXT` (UUID)
+
+---
+
 ## [1.4.0] – 2026-03-25
 
 ### Añadido

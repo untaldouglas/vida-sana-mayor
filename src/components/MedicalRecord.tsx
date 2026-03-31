@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getMedicalRecord, saveMedicalRecord, generateId } from '../storage'
+import { getMedicalRecord, saveMedicalRecord, deleteDiagnosis, generateId } from '../storage'
 import type { MedicalRecord, Allergy, Vaccine, Diagnosis, Surgery, FamilyHistory, Profile } from '../types'
 
 interface MedicalRecordProps {
@@ -25,6 +25,13 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
     setModal(null)
     setEditItem(null)
     showToast('✅ Guardado', 'success')
+  }
+
+  async function handleDeleteDiagnosis(diagnosisId: string) {
+    await deleteDiagnosis(profile.id, diagnosisId)
+    const updated = await getMedicalRecord(profile.id)
+    setRecord(updated)
+    showToast('🗑 Diagnóstico eliminado', 'success')
   }
 
   if (!record) return <p className="text-muted text-center mt-24">Cargando...</p>
@@ -63,7 +70,7 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
                   items={record.diagnoses}
                   onAdd={() => { setEditItem(null); setModal('diagnoses') }}
                   onEdit={item => { setEditItem(item); setModal('diagnoses') }}
-                  onDelete={id => save({ ...record, diagnoses: record.diagnoses.filter(d => d.id !== id) })}
+                  onDelete={handleDeleteDiagnosis}
                 />
               )}
               {s.key === 'allergies' && (
