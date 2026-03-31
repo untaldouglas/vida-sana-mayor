@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { getMedicalRecord, saveMedicalRecord, deleteDiagnosis, getDoctors, saveDoctor, generateId } from '../storage'
-import type { MedicalRecord, Allergy, Vaccine, Diagnosis, Surgery, FamilyHistory, Consultation, Doctor, Profile } from '../types'
+import { getMedicalRecord, saveMedicalRecord, deleteDiagnosis, getDoctors, saveDoctor, generateId, getTags, saveTag, setEntityTags, getEntityTags } from '../storage'
+import type { MedicalRecord, Allergy, Vaccine, Diagnosis, Surgery, FamilyHistory, Consultation, Doctor, Profile, Tag } from '../types'
 import DoctorSelector from './DoctorSelector'
+import TagPicker from './TagPicker'
 
 interface MedicalRecordProps {
   profile: Profile
@@ -13,6 +14,7 @@ type Section = 'consultations' | 'diagnoses' | 'allergies' | 'vaccines' | 'surge
 export default function MedicalRecordView({ profile, showToast }: MedicalRecordProps) {
   const [record, setRecord]   = useState<MedicalRecord | null>(null)
   const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [tags, setTags]       = useState<Tag[]>([])
   const [open, setOpen]       = useState<Section | null>('consultations')
   const [modal, setModal]     = useState<Section | null>(null)
   const [editItem, setEditItem] = useState<unknown>(null)
@@ -20,7 +22,13 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
   useEffect(() => {
     getMedicalRecord(profile.id).then(setRecord)
     getDoctors(profile.id).then(setDoctors)
+    getTags(profile.id).then(setTags)
   }, [profile.id])
+
+  async function handleTagCreated(tag: Tag) {
+    await saveTag(tag)
+    setTags(await getTags(profile.id))
+  }
 
   async function save(updated: MedicalRecord) {
     setRecord(updated)
@@ -39,7 +47,8 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
 
   async function handleSaveConsultation(
     c: Consultation,
-    newDoctor?: Doctor & { profileId: string }
+    newDoctor?: Doctor & { profileId: string },
+    tagIds: string[] = []
   ) {
     if (newDoctor) {
       await saveDoctor(newDoctor)
@@ -52,6 +61,18 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
         : [...record!.consultations, c]
     }
     await save(updated)
+    await setEntityTags('consultation', c.id, tagIds)
+  }
+
+  async function handleSaveDiagnosis(d: Diagnosis, tagIds: string[] = []) {
+    const updated = {
+      ...record!,
+      diagnoses: editItem
+        ? record!.diagnoses.map(x => x.id === d.id ? d : x)
+        : [...record!.diagnoses, d]
+    }
+    await save(updated)
+    await setEntityTags('diagnosis', d.id, tagIds)
   }
 
   if (!record) return <p className="text-muted text-center mt-24">Cargando...</p>
@@ -146,6 +167,8 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
           initial={editItem as Consultation | null}
           doctors={doctors}
           profileId={profile.id}
+          tags={tags}
+          onTagCreated={handleTagCreated}
           onSave={handleSaveConsultation}
           onClose={() => { setModal(null); setEditItem(null) }}
         />
@@ -153,7 +176,10 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
       {modal === 'diagnoses' && (
         <DiagnosisForm
           initial={editItem as Diagnosis | null}
-          onSave={d => save({ ...record, diagnoses: editItem ? record.diagnoses.map(x => x.id === d.id ? d : x) : [...record.diagnoses, d] })}
+          profileId={profile.id}
+          tags={tags}
+          onTagCreated={handleTagCreated}
+          onSave={handleSaveDiagnosis}
           onClose={() => { setModal(null); setEditItem(null) }}
         />
       )}
@@ -230,18 +256,28 @@ function ConsultationSection({ items, doctors, onAdd, onEdit, onDelete }: {
   )
 }
 
-function ConsultationForm({ initial, doctors, profileId, onSave, onClose }: {
+function ConsultationForm({ initial, doctors, profileId, tags, onTagCreated, onSave, onClose }: {
   initial: Consultation | null
   doctors: Doctor[]
   profileId: string
-  onSave: (c: Consultation, newDoctor?: Doctor & { profileId: string }) => void
+  tags: Tag[]
+  onTagCreated: (t: Tag) => void
+  onSave: (c: Consultation, newDoctor?: Doctor & { profileId: string }, tagIds?: string[]) => void
   onClose: () => void
 }) {
+  const [entityId] = useState(() => initial?.id ?? generateId())
   const [date, setDate]   = useState(initial?.date ?? new Date().toISOString().split('T')[0])
   const [reason, setReason] = useState(initial?.reason ?? '')
   const [notes, setNotes]   = useState(initial?.notes ?? '')
   const [doctorId, setDoctorId] = useState<string | undefined>(initial?.doctorId)
   const [pendingDoctor, setPending] = useState<(Doctor & { profileId: string }) | undefined>()
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (initial?.id) {
+      getEntityTags('consultation', initial.id).then(t => setSelectedTagIds(t.map(x => x.id)))
+    }
+  }, [initial?.id])
 
   function handleDoctorSelect(id: string | undefined, nd?: Doctor & { profileId: string }) {
     setDoctorId(id); setPending(nd)
@@ -274,11 +310,15 @@ function ConsultationForm({ initial, doctors, profileId, onSave, onClose }: {
             placeholder="Indicaciones, diagnóstico del día, medicamentos recetados..." />
         </div>
 
+        <div className="form-group">
+          <label>🏷️ Etiquetas</label>
+          <TagPicker tags={tags} selectedIds={selectedTagIds} profileId={profileId} onChange={setSelectedTagIds} onTagCreated={onTagCreated} />
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
           <button
             className="btn btn-primary"
-            onClick={() => onSave({ id: initial?.id ?? generateId(), doctorId, date, reason: reason.trim(), notes: notes.trim() }, pendingDoctor)}
+            onClick={() => onSave({ id: entityId, doctorId, date, reason: reason.trim(), notes: notes.trim() }, pendingDoctor, selectedTagIds)}
             disabled={!reason.trim()}
             style={{ flex: 2 }}
           >
@@ -417,12 +457,28 @@ function FamilySection({ items, onAdd, onEdit, onDelete }: { items: FamilyHistor
 
 // ---- Formularios ----
 
-function DiagnosisForm({ initial, onSave, onClose }: { initial: Diagnosis | null; onSave: (d: Diagnosis) => void; onClose: () => void }) {
+function DiagnosisForm({ initial, profileId, tags, onTagCreated, onSave, onClose }: {
+  initial: Diagnosis | null
+  profileId: string
+  tags: Tag[]
+  onTagCreated: (t: Tag) => void
+  onSave: (d: Diagnosis, tagIds?: string[]) => void
+  onClose: () => void
+}) {
+  const [entityId] = useState(() => initial?.id ?? generateId())
   const [condition, setCondition] = useState(initial?.condition ?? '')
   const [icdCode, setIcdCode] = useState(initial?.icdCode ?? '')
   const [onsetDate, setOnsetDate] = useState(initial?.onsetDate ?? '')
   const [status, setStatus] = useState<Diagnosis['status']>(initial?.status ?? 'active')
   const [notes, setNotes] = useState(initial?.notes ?? '')
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (initial?.id) {
+      getEntityTags('diagnosis', initial.id).then(t => setSelectedTagIds(t.map(x => x.id)))
+    }
+  }, [initial?.id])
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={e => e.stopPropagation()}>
@@ -441,9 +497,13 @@ function DiagnosisForm({ initial, onSave, onClose }: { initial: Diagnosis | null
           </select>
         </div>
         <div className="form-group"><label>Notas</label><textarea value={notes} onChange={e => setNotes(e.target.value)} /></div>
+        <div className="form-group">
+          <label>🏷️ Etiquetas</label>
+          <TagPicker tags={tags} selectedIds={selectedTagIds} profileId={profileId} onChange={setSelectedTagIds} onTagCreated={onTagCreated} />
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
-          <button className="btn btn-primary" onClick={() => onSave({ id: initial?.id ?? generateId(), condition, icdCode: icdCode || undefined, onsetDate, status, notes: notes || undefined })} disabled={!condition} style={{ flex: 2 }}>💾 Guardar</button>
+          <button className="btn btn-primary" onClick={() => onSave({ id: entityId, condition, icdCode: icdCode || undefined, onsetDate, status, notes: notes || undefined }, selectedTagIds)} disabled={!condition} style={{ flex: 2 }}>💾 Guardar</button>
         </div>
       </div>
     </div>

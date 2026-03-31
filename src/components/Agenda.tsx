@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { getAppointments, saveAppointment, deleteAppointment, getDoctors, generateId, speak } from '../storage'
-import type { Appointment, Doctor, Profile } from '../types'
+import { getAppointments, saveAppointment, deleteAppointment, getDoctors, generateId, speak, getTags, saveTag, setEntityTags, getEntityTags } from '../storage'
+import type { Appointment, Doctor, Profile, Tag } from '../types'
 import ImagePicker, { ImageThumbs } from './ImagePicker'
+import TagPicker from './TagPicker'
 
 interface AgendaProps {
   profile: Profile
@@ -11,6 +12,7 @@ interface AgendaProps {
 export default function Agenda({ profile, showToast }: AgendaProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Appointment | null>(null)
   const [view, setView] = useState<'upcoming' | 'week' | 'all'>('week')
@@ -18,14 +20,21 @@ export default function Agenda({ profile, showToast }: AgendaProps) {
   useEffect(() => {
     Promise.all([
       getAppointments(profile.id),
-      getDoctors(profile.id)
-    ]).then(([a, d]) => { setAppointments(a); setDoctors(d) })
+      getDoctors(profile.id),
+      getTags(profile.id)
+    ]).then(([a, d, t]) => { setAppointments(a); setDoctors(d); setTags(t) })
   }, [profile.id])
 
   const today = new Date().toISOString().split('T')[0]
 
-  async function saveAppt(appt: Appointment) {
+  async function handleTagCreated(tag: Tag) {
+    await saveTag(tag)
+    setTags(await getTags(profile.id))
+  }
+
+  async function saveAppt(appt: Appointment, tagIds: string[]) {
     await saveAppointment({ ...appt, profileId: profile.id } as Appointment & { profileId: string })
+    await setEntityTags('appointment', appt.id, tagIds)
     const updated = await getAppointments(profile.id)
     setAppointments(updated)
     setShowForm(false)
@@ -196,6 +205,8 @@ export default function Agenda({ profile, showToast }: AgendaProps) {
           initial={editing}
           doctors={doctors}
           profileId={profile.id}
+          tags={tags}
+          onTagCreated={handleTagCreated}
           onSave={saveAppt}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
@@ -204,13 +215,16 @@ export default function Agenda({ profile, showToast }: AgendaProps) {
   )
 }
 
-function ApptForm({ initial, doctors, profileId, onSave, onClose }: {
+function ApptForm({ initial, doctors, profileId, tags, onTagCreated, onSave, onClose }: {
   initial: Appointment | null
   doctors: Doctor[]
   profileId: string
-  onSave: (a: Appointment) => void
+  tags: Tag[]
+  onTagCreated: (t: Tag) => void
+  onSave: (a: Appointment, tagIds: string[]) => void
   onClose: () => void
 }) {
+  const [entityId] = useState(() => initial?.id ?? generateId())
   const [date, setDate] = useState(initial?.date ?? '')
   const [time, setTime] = useState(initial?.time ?? '')
   const [reason, setReason] = useState(initial?.reason ?? '')
@@ -221,17 +235,24 @@ function ApptForm({ initial, doctors, profileId, onSave, onClose }: {
   const [reminder, setReminder] = useState(initial?.reminder ?? true)
   const [reminderMinutes, setReminderMinutes] = useState(initial?.reminderMinutes ?? 60)
   const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (initial?.id) {
+      getEntityTags('appointment', initial.id).then(t => setSelectedTagIds(t.map(x => x.id)))
+    }
+  }, [initial?.id])
 
   function save() {
     const selected = doctors.find(d => d.id === doctorId)
     onSave({
-      id: initial?.id ?? generateId(),
+      id: entityId,
       date, time, reason, doctorId: doctorId || undefined,
       doctorName: selected?.name || doctorName || undefined,
       location: location || undefined, notes: notes || undefined,
       reminder, reminderMinutes,
       imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined
-    })
+    }, selectedTagIds)
   }
 
   return (
@@ -277,6 +298,10 @@ function ApptForm({ initial, doctors, profileId, onSave, onClose }: {
               <option value={1440}>1 día antes</option>
             </select>
           )}
+        </div>
+        <div className="form-group">
+          <label>🏷️ Etiquetas</label>
+          <TagPicker tags={tags} selectedIds={selectedTagIds} profileId={profileId} onChange={setSelectedTagIds} onTagCreated={onTagCreated} />
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { getDoctors, saveDoctor, deleteDoctor, getMedicalRecord, generateId } from '../storage'
-import type { Doctor, Diagnosis, Profile } from '../types'
+import { getDoctors, saveDoctor, deleteDoctor, getMedicalRecord, generateId, getTags, saveTag, setEntityTags, getEntityTags } from '../storage'
+import type { Doctor, Diagnosis, Profile, Tag } from '../types'
 import ImagePicker, { ImageThumbs } from './ImagePicker'
+import TagPicker from './TagPicker'
 
 interface DoctorsProps {
   profile: Profile
@@ -13,16 +14,23 @@ const SPECIALTIES = ['Médico general', 'Internista', 'Cardiólogo', 'Endocrinó
 export default function Doctors({ profile, showToast }: DoctorsProps) {
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Doctor | null>(null)
 
   useEffect(() => {
-    Promise.all([getDoctors(profile.id), getMedicalRecord(profile.id)])
-      .then(([d, r]) => { setDoctors(d); setDiagnoses(r.diagnoses) })
+    Promise.all([getDoctors(profile.id), getMedicalRecord(profile.id), getTags(profile.id)])
+      .then(([d, r, t]) => { setDoctors(d); setDiagnoses(r.diagnoses); setTags(t) })
   }, [profile.id])
 
-  async function saveDoc(doc: Doctor) {
+  async function handleTagCreated(tag: Tag) {
+    await saveTag(tag)
+    setTags(await getTags(profile.id))
+  }
+
+  async function saveDoc(doc: Doctor, tagIds: string[]) {
     await saveDoctor({ ...doc, profileId: profile.id } as Doctor & { profileId: string })
+    await setEntityTags('doctor', doc.id, tagIds)
     const updated = await getDoctors(profile.id)
     setDoctors(updated)
     setShowForm(false)
@@ -99,6 +107,8 @@ export default function Doctors({ profile, showToast }: DoctorsProps) {
           initial={editing}
           diagnoses={diagnoses}
           profileId={profile.id}
+          tags={tags}
+          onTagCreated={handleTagCreated}
           onSave={saveDoc}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
@@ -107,13 +117,16 @@ export default function Doctors({ profile, showToast }: DoctorsProps) {
   )
 }
 
-function DoctorForm({ initial, diagnoses, profileId, onSave, onClose }: {
+function DoctorForm({ initial, diagnoses, profileId, tags, onTagCreated, onSave, onClose }: {
   initial: Doctor | null
   diagnoses: Diagnosis[]
   profileId: string
-  onSave: (d: Doctor) => void
+  tags: Tag[]
+  onTagCreated: (t: Tag) => void
+  onSave: (d: Doctor, tagIds: string[]) => void
   onClose: () => void
 }) {
+  const [entityId] = useState(() => initial?.id ?? generateId())
   const [name, setName] = useState(initial?.name ?? '')
   const [specialty, setSpecialty] = useState(initial?.specialty ?? '')
   const [phone, setPhone] = useState(initial?.phone ?? '')
@@ -123,6 +136,13 @@ function DoctorForm({ initial, diagnoses, profileId, onSave, onClose }: {
   const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
   const [rating, setRating] = useState<number>(initial?.rating ?? 0)
   const [ratingNotes, setRatingNotes] = useState(initial?.ratingNotes ?? '')
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (initial?.id) {
+      getEntityTags('doctor', initial.id).then(t => setSelectedTagIds(t.map(x => x.id)))
+    }
+  }, [initial?.id])
 
   function toggleDiag(id: string) {
     setDiagnosisIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
@@ -178,9 +198,13 @@ function DoctorForm({ initial, diagnoses, profileId, onSave, onClose }: {
             <input type="text" value={ratingNotes} onChange={e => setRatingNotes(e.target.value)} placeholder="¿Por qué le diste esta calificación?" style={{ marginTop: 8 }} />
           )}
         </div>
+        <div className="form-group">
+          <label>🏷️ Etiquetas</label>
+          <TagPicker tags={tags} selectedIds={selectedTagIds} profileId={profileId} onChange={setSelectedTagIds} onTagCreated={onTagCreated} />
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
-          <button className="btn btn-primary" onClick={() => onSave({ id: initial?.id ?? generateId(), name, specialty, phone: phone || undefined, address: address || undefined, notes: notes || undefined, diagnosisIds, imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined, rating: rating > 0 ? rating : undefined, ratingNotes: ratingNotes.trim() || undefined })} disabled={!name} style={{ flex: 2 }}>💾 Guardar</button>
+          <button className="btn btn-primary" onClick={() => onSave({ id: entityId, name, specialty, phone: phone || undefined, address: address || undefined, notes: notes || undefined, diagnosisIds, imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined, rating: rating > 0 ? rating : undefined, ratingNotes: ratingNotes.trim() || undefined }, selectedTagIds)} disabled={!name} style={{ flex: 2 }}>💾 Guardar</button>
         </div>
       </div>
     </div>

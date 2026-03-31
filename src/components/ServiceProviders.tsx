@@ -5,11 +5,13 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   getServiceProviders, saveServiceProvider, deleteServiceProvider,
-  generateId, saveMedia, deleteMedia, speak
+  generateId, saveMedia, deleteMedia, speak,
+  getTags, saveTag, setEntityTags, getEntityTags
 } from '../storage'
-import type { ServiceProvider, ProviderCategory, Profile, MediaFile, AIConfig } from '../types'
+import type { ServiceProvider, ProviderCategory, Profile, MediaFile, AIConfig, Tag } from '../types'
 import { callAI } from '../services/aiService'
 import ImagePicker, { ImageThumbs } from './ImagePicker'
+import TagPicker from './TagPicker'
 
 interface ServiceProvidersProps {
   profile: Profile
@@ -61,16 +63,24 @@ function StarRating({ value, onChange, size = '1.6rem' }: {
 
 export default function ServiceProviders({ profile, showToast, aiConfig }: ServiceProvidersProps) {
   const [providers, setProviders] = useState<ServiceProvider[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [filter, setFilter] = useState<ProviderCategory | 'todos'>('todos')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<ServiceProvider | null>(null)
 
   useEffect(() => {
-    getServiceProviders(profile.id).then(setProviders)
+    Promise.all([getServiceProviders(profile.id), getTags(profile.id)])
+      .then(([p, t]) => { setProviders(p); setTags(t) })
   }, [profile.id])
 
-  async function saveProvider(prov: ServiceProvider) {
+  async function handleTagCreated(tag: Tag) {
+    await saveTag(tag)
+    setTags(await getTags(profile.id))
+  }
+
+  async function saveProvider(prov: ServiceProvider, tagIds: string[]) {
     await saveServiceProvider(prov)
+    await setEntityTags('provider', prov.id, tagIds)
     const updated = await getServiceProviders(profile.id)
     setProviders(updated)
     setShowForm(false)
@@ -212,6 +222,8 @@ export default function ServiceProviders({ profile, showToast, aiConfig }: Servi
           initial={editing}
           profileId={profile.id}
           aiConfig={aiConfig}
+          tags={tags}
+          onTagCreated={handleTagCreated}
           onSave={saveProvider}
           onClose={() => { setShowForm(false); setEditing(null) }}
           showToast={showToast}
@@ -222,14 +234,17 @@ export default function ServiceProviders({ profile, showToast, aiConfig }: Servi
 }
 
 // ---- Formulario ----
-function ProviderForm({ initial, profileId, aiConfig, onSave, onClose, showToast }: {
+function ProviderForm({ initial, profileId, aiConfig, tags, onTagCreated, onSave, onClose, showToast }: {
   initial: ServiceProvider | null
   profileId: string
   aiConfig?: AIConfig | null
-  onSave: (p: ServiceProvider) => void
+  tags: Tag[]
+  onTagCreated: (t: Tag) => void
+  onSave: (p: ServiceProvider, tagIds: string[]) => void
   onClose: () => void
   showToast: (msg: string, type?: string) => void
 }) {
+  const [entityId] = useState(() => initial?.id ?? generateId())
   const [name, setName] = useState(initial?.name ?? '')
   const [category, setCategory] = useState<ProviderCategory>(initial?.category ?? 'hospital')
   const [subcategory, setSubcategory] = useState(initial?.subcategory ?? '')
@@ -242,6 +257,13 @@ function ProviderForm({ initial, profileId, aiConfig, onSave, onClose, showToast
   const [imageFileIds, setImageFileIds] = useState<string[]>(initial?.imageFileIds ?? [])
   const [aiSummary, setAiSummary] = useState(initial?.aiSummary ?? '')
   const [generatingAI, setGeneratingAI] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (initial?.id) {
+      getEntityTags('provider', initial.id).then(t => setSelectedTagIds(t.map(x => x.id)))
+    }
+  }, [initial?.id])
 
   // Audio
   const [recording, setRecording] = useState(false)
@@ -321,7 +343,7 @@ function ProviderForm({ initial, profileId, aiConfig, onSave, onClose, showToast
       finalAudioId = mf.id
     }
     onSave({
-      id: initial?.id ?? generateId(),
+      id: entityId,
       profileId,
       name: name.trim(),
       category,
@@ -336,7 +358,7 @@ function ProviderForm({ initial, profileId, aiConfig, onSave, onClose, showToast
       rating: rating > 0 ? rating : undefined,
       ratingNotes: ratingNotes.trim() || undefined,
       createdAt: initial?.createdAt ?? new Date().toISOString()
-    })
+    }, selectedTagIds)
   }
 
   return (
@@ -473,6 +495,10 @@ function ProviderForm({ initial, profileId, aiConfig, onSave, onClose, showToast
           {rating === 0 && <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: 4 }}>Toca una estrella para calificar</p>}
         </div>
 
+        <div className="form-group">
+          <label>🏷️ Etiquetas</label>
+          <TagPicker tags={tags} selectedIds={selectedTagIds} profileId={profileId} onChange={setSelectedTagIds} onTagCreated={onTagCreated} />
+        </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
           <button className="btn btn-primary" onClick={handleSave} disabled={!name.trim()} style={{ flex: 2 }}>

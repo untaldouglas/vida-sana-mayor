@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { getMedicalRecord, saveMedicalRecord, getDoctors, saveDoctor, generateId, speak, updateProgress } from '../storage'
-import type { Medication, MedicalRecord, Consultation, Doctor, Profile } from '../types'
+import { getMedicalRecord, saveMedicalRecord, getDoctors, saveDoctor, generateId, speak, updateProgress, getTags, saveTag, setEntityTags, getEntityTags } from '../storage'
+import type { Medication, MedicalRecord, Consultation, Doctor, Profile, Tag } from '../types'
 import ImagePicker, { ImageThumbs } from './ImagePicker'
 import DoctorSelector from './DoctorSelector'
+import TagPicker from './TagPicker'
 
 interface MedicationsProps {
   profile: Profile
@@ -12,6 +13,7 @@ interface MedicationsProps {
 export default function Medications({ profile, showToast }: MedicationsProps) {
   const [record, setRecord]   = useState<MedicalRecord | null>(null)
   const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [tags, setTags]       = useState<Tag[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing]   = useState<Medication | null>(null)
 
@@ -20,7 +22,13 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
   useEffect(() => {
     getMedicalRecord(profile.id).then(setRecord)
     getDoctors(profile.id).then(setDoctors)
+    getTags(profile.id).then(setTags)
   }, [profile.id])
+
+  async function handleTagCreated(tag: Tag) {
+    await saveTag(tag)
+    setTags(await getTags(profile.id))
+  }
 
   async function takeMed(medId: string) {
     if (!record) return
@@ -56,7 +64,7 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
     showToast(`✅ ${med?.name} registrado`, 'success')
   }
 
-  async function saveMed(med: Medication, newDoctor?: Doctor & { profileId: string }) {
+  async function saveMed(med: Medication, newDoctor?: Doctor & { profileId: string }, tagIds: string[] = []) {
     if (!record) return
     if (newDoctor) {
       await saveDoctor(newDoctor)
@@ -69,6 +77,7 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
     const updated = { ...record, medications: updatedMeds }
     setRecord(updated)
     await saveMedicalRecord(updated)
+    await setEntityTags('medication', med.id, tagIds)
     setShowForm(false)
     setEditing(null)
     showToast(isNew ? '💊 Medicamento añadido' : '✏️ Medicamento actualizado', 'success')
@@ -207,6 +216,8 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
           profileId={profile.id}
           doctors={doctors}
           consultations={record?.consultations ?? []}
+          tags={tags}
+          onTagCreated={handleTagCreated}
           onSave={saveMed}
           onClose={() => { setShowForm(false); setEditing(null) }}
         />
@@ -218,14 +229,17 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
 // ---- Formulario de medicamento ----
 const PRESCRIPTION_SOURCES = ['Auto-medicado', 'Recomendación del farmacéutico', 'Indicación de enfermería', 'Otro']
 
-function MedForm({ initial, profileId, doctors, consultations, onSave, onClose }: {
+function MedForm({ initial, profileId, doctors, consultations, tags, onTagCreated, onSave, onClose }: {
   initial: Medication | null
   profileId: string
   doctors: Doctor[]
   consultations: Consultation[]
-  onSave: (med: Medication, newDoctor?: Doctor & { profileId: string }) => void
+  tags: Tag[]
+  onTagCreated: (t: Tag) => void
+  onSave: (med: Medication, newDoctor?: Doctor & { profileId: string }, tagIds?: string[]) => void
   onClose: () => void
 }) {
+  const [entityId] = useState(() => initial?.id ?? generateId())
   const [name, setName] = useState(initial?.name ?? '')
   const [dose, setDose] = useState(initial?.dose ?? '')
   const [frequency, setFrequency] = useState(initial?.frequency ?? '')
@@ -243,6 +257,13 @@ function MedForm({ initial, profileId, doctors, consultations, onSave, onClose }
   const [prescriptionSource, setPrescriptionSource]     = useState(initial?.prescriptionSource ?? '')
   // Consulta de origen
   const [prescribingConsultationId, setPrescribingConsultationId] = useState(initial?.prescribingConsultationId ?? '')
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (initial?.id) {
+      getEntityTags('medication', initial.id).then(t => setSelectedTagIds(t.map(x => x.id)))
+    }
+  }, [initial?.id])
 
   function handleDoctorSelect(id: string | undefined, nd?: Doctor & { profileId: string }) {
     setPrescribingDoctorId(id)
@@ -253,7 +274,7 @@ function MedForm({ initial, profileId, doctors, consultations, onSave, onClose }
 
   function save() {
     const med: Medication = {
-      id: initial?.id ?? generateId(),
+      id: entityId,
       name: name.trim(), dose: dose.trim(), frequency: frequency.trim(),
       times: timesStr.split(',').map(t => t.trim()).filter(Boolean),
       startDate, endDate: endDate || undefined,
@@ -268,7 +289,7 @@ function MedForm({ initial, profileId, doctors, consultations, onSave, onClose }
       imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined,
       rating: rating > 0 ? rating : undefined
     }
-    onSave(med, pendingDoctor)
+    onSave(med, pendingDoctor, selectedTagIds)
   }
 
   const FREQ_SUGGESTIONS = ['Una vez al día', 'Dos veces al día', 'Cada 8 horas', 'Cada 12 horas', 'Según necesidad']
@@ -400,6 +421,10 @@ function MedForm({ initial, profileId, doctors, consultations, onSave, onClose }
           {rating === 0 && <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: 4 }}>¿Qué tan efectivo/tolerable es?</p>}
         </div>
 
+        <div className="form-group">
+          <label>🏷️ Etiquetas</label>
+          <TagPicker tags={tags} selectedIds={selectedTagIds} profileId={profileId} onChange={setSelectedTagIds} onTagCreated={onTagCreated} />
+        </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
           <button className="btn btn-primary" onClick={save} disabled={!name || !dose} style={{ flex: 2 }}>

@@ -5,11 +5,13 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   getMedicalExams, saveMedicalExam, deleteMedicalExam,
-  getDoctors, getServiceProviders, generateId, saveMedia, getMedia, deleteMedia, speak
+  getDoctors, getServiceProviders, generateId, saveMedia, getMedia, deleteMedia, speak,
+  getTags, saveTag, setEntityTags, getEntityTags
 } from '../storage'
-import type { MedicalExam, ExamCategory, ExamStatus, Profile, Doctor, ServiceProvider, MediaFile, AIConfig } from '../types'
+import type { MedicalExam, ExamCategory, ExamStatus, Profile, Doctor, ServiceProvider, MediaFile, AIConfig, Tag } from '../types'
 import { callAI } from '../services/aiService'
 import ImagePicker, { ImageThumbs } from './ImagePicker'
+import TagPicker from './TagPicker'
 
 interface MedicalExamsProps {
   profile: Profile
@@ -99,6 +101,7 @@ export default function MedicalExams({ profile, showToast, aiConfig }: MedicalEx
   const [exams, setExams] = useState<MedicalExam[]>([])
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [providers, setProviders] = useState<ServiceProvider[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [filter, setFilter] = useState<ExamCategory | 'todos'>('todos')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<MedicalExam | null>(null)
@@ -107,14 +110,21 @@ export default function MedicalExams({ profile, showToast, aiConfig }: MedicalEx
     Promise.all([
       getMedicalExams(profile.id),
       getDoctors(profile.id),
-      getServiceProviders(profile.id)
-    ]).then(([e, d, p]) => {
-      setExams(e); setDoctors(d); setProviders(p)
+      getServiceProviders(profile.id),
+      getTags(profile.id)
+    ]).then(([e, d, p, t]) => {
+      setExams(e); setDoctors(d); setProviders(p); setTags(t)
     })
   }, [profile.id])
 
-  async function saveExam(exam: MedicalExam) {
+  async function handleTagCreated(tag: Tag) {
+    await saveTag(tag)
+    setTags(await getTags(profile.id))
+  }
+
+  async function saveExam(exam: MedicalExam, tagIds: string[]) {
     await saveMedicalExam(exam)
+    await setEntityTags('exam', exam.id, tagIds)
     const updated = await getMedicalExams(profile.id)
     setExams(updated)
     setShowForm(false)
@@ -253,6 +263,8 @@ export default function MedicalExams({ profile, showToast, aiConfig }: MedicalEx
           doctors={doctors}
           providers={providers}
           aiConfig={aiConfig}
+          tags={tags}
+          onTagCreated={handleTagCreated}
           onSave={saveExam}
           onClose={() => { setShowForm(false); setEditing(null) }}
           showToast={showToast}
@@ -263,16 +275,19 @@ export default function MedicalExams({ profile, showToast, aiConfig }: MedicalEx
 }
 
 // ---- Formulario ----
-function ExamForm({ initial, profileId, doctors, providers, aiConfig, onSave, onClose, showToast }: {
+function ExamForm({ initial, profileId, doctors, providers, aiConfig, tags, onTagCreated, onSave, onClose, showToast }: {
   initial: MedicalExam | null
   profileId: string
   doctors: Doctor[]
   providers: ServiceProvider[]
   aiConfig?: AIConfig | null
-  onSave: (exam: MedicalExam) => void
+  tags: Tag[]
+  onTagCreated: (t: Tag) => void
+  onSave: (exam: MedicalExam, tagIds: string[]) => void
   onClose: () => void
   showToast: (msg: string, type?: string) => void
 }) {
+  const [entityId] = useState(() => initial?.id ?? generateId())
   const [category, setCategory] = useState<ExamCategory>(initial?.category ?? 'laboratorio')
   const [examType, setExamType] = useState(initial?.examType ?? '')
   const [customType, setCustomType] = useState('')
@@ -290,6 +305,13 @@ function ExamForm({ initial, profileId, doctors, providers, aiConfig, onSave, on
   const [rating, setRating] = useState<number>(initial?.rating ?? 0)
   const [aiSummary, setAiSummary] = useState(initial?.aiSummary ?? '')
   const [generatingAI, setGeneratingAI] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (initial?.id) {
+      getEntityTags('exam', initial.id).then(t => setSelectedTagIds(t.map(x => x.id)))
+    }
+  }, [initial?.id])
 
   // Audio
   const [recording, setRecording] = useState(false)
@@ -364,7 +386,7 @@ function ExamForm({ initial, profileId, doctors, providers, aiConfig, onSave, on
     const selectedDoctor = doctors.find(d => d.id === doctorId)
     const selectedProvider = providers.find(p => p.id === providerId)
     onSave({
-      id: initial?.id ?? generateId(),
+      id: entityId,
       profileId,
       category,
       examType: examType === '__custom__' ? customType.trim() : examType,
@@ -382,7 +404,7 @@ function ExamForm({ initial, profileId, doctors, providers, aiConfig, onSave, on
       imageFileIds: imageFileIds.length > 0 ? imageFileIds : undefined,
       rating: rating > 0 ? rating : undefined,
       createdAt: initial?.createdAt ?? new Date().toISOString()
-    })
+    }, selectedTagIds)
   }
 
   async function removeAudio() {
@@ -598,6 +620,10 @@ function ExamForm({ initial, profileId, doctors, providers, aiConfig, onSave, on
           {rating === 0 && <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: 4 }}>Toca una estrella para calificar</p>}
         </div>
 
+        <div className="form-group">
+          <label>🏷️ Etiquetas</label>
+          <TagPicker tags={tags} selectedIds={selectedTagIds} profileId={profileId} onChange={setSelectedTagIds} onTagCreated={onTagCreated} />
+        </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
           <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
           <button
