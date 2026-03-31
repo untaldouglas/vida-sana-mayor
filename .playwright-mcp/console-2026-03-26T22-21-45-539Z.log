@@ -1,0 +1,4 @@
+[    1230ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ https://untaldouglas.github.io/vida-sana-mayor/:0
+[  604769ms] TypeError: Cannot read properties of undefined (reading 'lastEntryDate')
+    at bi (https://untaldouglas.github.io/vida-sana-mayor/assets/index-YbWOnSya.js:40:65912)
+    at async T (https://untaldouglas.github.io/vida-sana-mayor/assets/index-YbWOnSya.js:53:74889)
