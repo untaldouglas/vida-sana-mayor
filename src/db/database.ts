@@ -49,8 +49,18 @@ export async function getDB(): Promise<Database> {
   _db.run('PRAGMA foreign_keys = ON')
   _db.run('PRAGMA journal_mode = MEMORY')
 
-  // Aplicar esquema (idempotente: CREATE TABLE IF NOT EXISTS)
+  // Aplicar esquema base (idempotente: CREATE TABLE IF NOT EXISTS)
   _db.run(SCHEMA_SQL)
+
+  // Migraciones incrementales — seguro re-ejecutar; el catch ignora "columna ya existe"
+  const COLUMN_MIGRATIONS = [
+    `ALTER TABLE medications ADD COLUMN prescribing_doctor_id       TEXT REFERENCES doctors(id) ON DELETE SET NULL ON UPDATE CASCADE`,
+    `ALTER TABLE medications ADD COLUMN prescription_source         TEXT`,
+    `ALTER TABLE medications ADD COLUMN prescribing_consultation_id TEXT REFERENCES consultations(id) ON DELETE SET NULL ON UPDATE CASCADE`
+  ]
+  for (const sql of COLUMN_MIGRATIONS) {
+    try { _db.run(sql) } catch { /* columna ya existe en esta BD */ }
+  }
 
   if (!(await idbGet(SQL_IDB_NAME, SQL_IDB_STORE, SQL_IDB_KEY))) {
     await persistSQL()

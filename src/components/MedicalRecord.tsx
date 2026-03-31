@@ -1,22 +1,25 @@
 import { useState, useEffect } from 'react'
-import { getMedicalRecord, saveMedicalRecord, deleteDiagnosis, generateId } from '../storage'
-import type { MedicalRecord, Allergy, Vaccine, Diagnosis, Surgery, FamilyHistory, Profile } from '../types'
+import { getMedicalRecord, saveMedicalRecord, deleteDiagnosis, getDoctors, saveDoctor, generateId } from '../storage'
+import type { MedicalRecord, Allergy, Vaccine, Diagnosis, Surgery, FamilyHistory, Consultation, Doctor, Profile } from '../types'
+import DoctorSelector from './DoctorSelector'
 
 interface MedicalRecordProps {
   profile: Profile
   showToast: (msg: string, type?: string) => void
 }
 
-type Section = 'allergies' | 'vaccines' | 'diagnoses' | 'surgeries' | 'family'
+type Section = 'consultations' | 'diagnoses' | 'allergies' | 'vaccines' | 'surgeries' | 'family'
 
 export default function MedicalRecordView({ profile, showToast }: MedicalRecordProps) {
-  const [record, setRecord] = useState<MedicalRecord | null>(null)
-  const [open, setOpen] = useState<Section | null>('diagnoses')
-  const [modal, setModal] = useState<Section | null>(null)
+  const [record, setRecord]   = useState<MedicalRecord | null>(null)
+  const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [open, setOpen]       = useState<Section | null>('consultations')
+  const [modal, setModal]     = useState<Section | null>(null)
   const [editItem, setEditItem] = useState<unknown>(null)
 
   useEffect(() => {
     getMedicalRecord(profile.id).then(setRecord)
+    getDoctors(profile.id).then(setDoctors)
   }, [profile.id])
 
   async function save(updated: MedicalRecord) {
@@ -34,9 +37,27 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
     showToast('🗑 Diagnóstico eliminado', 'success')
   }
 
+  async function handleSaveConsultation(
+    c: Consultation,
+    newDoctor?: Doctor & { profileId: string }
+  ) {
+    if (newDoctor) {
+      await saveDoctor(newDoctor)
+      setDoctors(await getDoctors(profile.id))
+    }
+    const updated = {
+      ...record!,
+      consultations: editItem
+        ? record!.consultations.map(x => x.id === c.id ? c : x)
+        : [...record!.consultations, c]
+    }
+    await save(updated)
+  }
+
   if (!record) return <p className="text-muted text-center mt-24">Cargando...</p>
 
   const sections: { key: Section; icon: string; label: string; count: number }[] = [
+    { key: 'consultations', icon: '📋', label: 'Consultas médicas', count: record.consultations.length },
     { key: 'diagnoses', icon: '🩺', label: 'Diagnósticos', count: record.diagnoses.length },
     { key: 'allergies', icon: '⚠️', label: 'Alergias', count: record.allergies.length },
     { key: 'vaccines', icon: '💉', label: 'Vacunas', count: record.vaccines.length },
@@ -65,6 +86,15 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
           </button>
           {open === s.key && (
             <div className="section-body">
+              {s.key === 'consultations' && (
+                <ConsultationSection
+                  items={record.consultations}
+                  doctors={doctors}
+                  onAdd={() => { setEditItem(null); setModal('consultations') }}
+                  onEdit={item => { setEditItem(item); setModal('consultations') }}
+                  onDelete={id => save({ ...record, consultations: record.consultations.filter(c => c.id !== id) })}
+                />
+              )}
               {s.key === 'diagnoses' && (
                 <DiagnosisSection
                   items={record.diagnoses}
@@ -111,6 +141,15 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
       ))}
 
       {/* Modals */}
+      {modal === 'consultations' && (
+        <ConsultationForm
+          initial={editItem as Consultation | null}
+          doctors={doctors}
+          profileId={profile.id}
+          onSave={handleSaveConsultation}
+          onClose={() => { setModal(null); setEditItem(null) }}
+        />
+      )}
       {modal === 'diagnoses' && (
         <DiagnosisForm
           initial={editItem as Diagnosis | null}
@@ -146,6 +185,107 @@ export default function MedicalRecordView({ profile, showToast }: MedicalRecordP
           onClose={() => { setModal(null); setEditItem(null) }}
         />
       )}
+    </div>
+  )
+}
+
+// ---- Sección de consultas ----
+
+function ConsultationSection({ items, doctors, onAdd, onEdit, onDelete }: {
+  items: Consultation[]
+  doctors: Doctor[]
+  onAdd: () => void
+  onEdit: (c: Consultation) => void
+  onDelete: (id: string) => void
+}) {
+  function doctorLabel(doctorId?: string) {
+    if (!doctorId) return null
+    const d = doctors.find(x => x.id === doctorId)
+    return d ? `Dr. ${d.name} – ${d.specialty}` : null
+  }
+  return (
+    <div>
+      <button className="btn btn-primary btn-sm mb-8" onClick={onAdd}>+ Añadir consulta</button>
+      {items.length === 0 && <p className="text-muted text-sm">Sin consultas registradas</p>}
+      <ul className="item-list">
+        {[...items].sort((a, b) => b.date.localeCompare(a.date)).map(c => (
+          <li key={c.id} className="item-row">
+            <span className="item-icon">📋</span>
+            <div className="item-body">
+              <div className="item-title">{c.reason}</div>
+              <div className="item-sub">{c.date}</div>
+              {doctorLabel(c.doctorId) && (
+                <div className="item-sub" style={{ color: 'var(--olive-dark)' }}>👨‍⚕️ {doctorLabel(c.doctorId)}</div>
+              )}
+              {c.notes && <div className="item-sub">{c.notes.slice(0, 80)}{c.notes.length > 80 ? '…' : ''}</div>}
+            </div>
+            <div className="item-actions">
+              <button className="btn btn-sm btn-outline" onClick={() => onEdit(c)} style={{ padding: '6px 8px', minHeight: 36 }}>✏️</button>
+              <button className="btn btn-sm" onClick={() => onDelete(c.id)} style={{ padding: '6px 8px', minHeight: 36, background: '#FFECEC' }}>🗑</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function ConsultationForm({ initial, doctors, profileId, onSave, onClose }: {
+  initial: Consultation | null
+  doctors: Doctor[]
+  profileId: string
+  onSave: (c: Consultation, newDoctor?: Doctor & { profileId: string }) => void
+  onClose: () => void
+}) {
+  const [date, setDate]   = useState(initial?.date ?? new Date().toISOString().split('T')[0])
+  const [reason, setReason] = useState(initial?.reason ?? '')
+  const [notes, setNotes]   = useState(initial?.notes ?? '')
+  const [doctorId, setDoctorId] = useState<string | undefined>(initial?.doctorId)
+  const [pendingDoctor, setPending] = useState<(Doctor & { profileId: string }) | undefined>()
+
+  function handleDoctorSelect(id: string | undefined, nd?: Doctor & { profileId: string }) {
+    setDoctorId(id); setPending(nd)
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <h2 className="modal-title">📋 {initial ? 'Editar' : 'Nueva'} consulta</h2>
+
+        <div className="form-group">
+          <label>Fecha *</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Motivo de la consulta *</label>
+          <input type="text" value={reason} onChange={e => setReason(e.target.value)}
+            placeholder="Ej: Control de diabetes, revisión anual..." autoFocus />
+        </div>
+        <div className="form-group">
+          <label>Doctor</label>
+          <DoctorSelector
+            doctors={doctors} profileId={profileId}
+            doctorId={doctorId} onSelect={handleDoctorSelect}
+          />
+        </div>
+        <div className="form-group">
+          <label>Notas / observaciones</label>
+          <textarea value={notes} onChange={e => setNotes(e.target.value)}
+            placeholder="Indicaciones, diagnóstico del día, medicamentos recetados..." />
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-outline" onClick={onClose} style={{ flex: 1 }}>Cancelar</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => onSave({ id: initial?.id ?? generateId(), doctorId, date, reason: reason.trim(), notes: notes.trim() }, pendingDoctor)}
+            disabled={!reason.trim()}
+            style={{ flex: 2 }}
+          >
+            💾 Guardar
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -60,6 +60,9 @@ export interface Medication {
   stock: number              // pastillas restantes
   stockAlert: number         // alertar cuando queden X
   diagnosisId?: string
+  prescribingDoctorId?: string      // FK → Doctor (doctor que recetó)
+  prescriptionSource?: string       // cuando no hay doctor: 'auto-medicado', 'farmacéutico', texto libre
+  prescribingConsultationId?: string // FK → Consultation (consulta en que se recetó, opcional)
   notes?: string
   lastTaken?: string
   takenHistory: TakenRecord[]

@@ -91,8 +91,11 @@ function mapMedication(r: Row, taken: TakenRecord[], imageFileIds: string[]): Me
     frequency: str(r.frequency), times: json<string[]>(r.times),
     startDate: str(r.start_date), endDate: ostr(r.end_date),
     stock: num(r.stock), stockAlert: num(r.stock_alert),
-    diagnosisId: ostr(r.diagnosis_id), notes: ostr(r.notes),
-    lastTaken: ostr(r.last_taken), takenHistory: taken,
+    diagnosisId: ostr(r.diagnosis_id),
+    prescribingDoctorId:       ostr(r.prescribing_doctor_id),
+    prescriptionSource:        ostr(r.prescription_source),
+    prescribingConsultationId: ostr(r.prescribing_consultation_id),
+    notes: ostr(r.notes), lastTaken: ostr(r.last_taken), takenHistory: taken,
     imageFileIds: imageFileIds.length ? imageFileIds : undefined,
     rating: r.rating != null ? num(r.rating) : undefined
   }
@@ -447,10 +450,15 @@ export async function saveMedicalRecord(record: MedicalRecord): Promise<void> {
     _syncSimpleItems(db, 'medications', pid, record.medications, (db, m) => {
       runSQL(db,
         `INSERT OR REPLACE INTO medications
-           (id, profile_id, diagnosis_id, name, dose, frequency, times,
+           (id, profile_id, diagnosis_id,
+            prescribing_doctor_id, prescription_source, prescribing_consultation_id,
+            name, dose, frequency, times,
             start_date, end_date, stock, stock_alert, notes, last_taken, rating)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [m.id, pid, m.diagnosisId ?? null, m.name, m.dose, m.frequency,
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [m.id, pid, m.diagnosisId ?? null,
+         m.prescribingDoctorId ?? null, m.prescriptionSource ?? null,
+         m.prescribingConsultationId ?? null,
+         m.name, m.dose, m.frequency,
          JSON.stringify(m.times), m.startDate, m.endDate ?? null,
          m.stock, m.stockAlert, m.notes ?? null, m.lastTaken ?? null, m.rating ?? null]
       )

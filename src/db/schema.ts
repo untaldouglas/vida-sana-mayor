@@ -140,8 +140,13 @@ CREATE TABLE IF NOT EXISTS medications (
   id           TEXT PRIMARY KEY,
   profile_id   TEXT NOT NULL
                REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE,
-  diagnosis_id TEXT
-               REFERENCES diagnoses(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  diagnosis_id                TEXT
+                              REFERENCES diagnoses(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  prescribing_doctor_id       TEXT
+                              REFERENCES doctors(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  prescription_source         TEXT,   -- 'auto-medicado' | 'farmacéutico' | texto libre (sin doctor)
+  prescribing_consultation_id TEXT
+                              REFERENCES consultations(id) ON DELETE SET NULL ON UPDATE CASCADE,
   name         TEXT NOT NULL,
   dose         TEXT NOT NULL,
   frequency    TEXT NOT NULL,
@@ -344,6 +349,8 @@ CREATE INDEX IF NOT EXISTS idx_fh_profile           ON family_history(profile_id
 CREATE INDEX IF NOT EXISTS idx_doctors_profile      ON doctors(profile_id);
 CREATE INDEX IF NOT EXISTS idx_meds_profile         ON medications(profile_id);
 CREATE INDEX IF NOT EXISTS idx_meds_diagnosis       ON medications(diagnosis_id);
+CREATE INDEX IF NOT EXISTS idx_meds_prescr_doctor  ON medications(prescribing_doctor_id);
+CREATE INDEX IF NOT EXISTS idx_meds_prescr_consult ON medications(prescribing_consultation_id);
 CREATE INDEX IF NOT EXISTS idx_taken_medication     ON medication_taken_history(medication_id);
 CREATE INDEX IF NOT EXISTS idx_consults_profile     ON consultations(profile_id);
 CREATE INDEX IF NOT EXISTS idx_consults_doctor      ON consultations(doctor_id);
