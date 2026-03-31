@@ -289,6 +289,29 @@ export interface Rating {
   date: string
 }
 
+// ============================================================
+// Etiquetas (Tags) – taxonomía libre definida por el usuario
+// ============================================================
+
+export type TagEntityType =
+  | 'doctor'
+  | 'medication'
+  | 'consultation'
+  | 'exam'
+  | 'provider'
+  | 'appointment'
+  | 'media_file'
+  | 'diagnosis'
+  | 'allergy'
+
+export interface Tag {
+  id: string
+  profileId: string
+  name: string
+  category: string   // categoría libre: "especialidad médica", "tipo", etc.
+  color: string      // color hex, ej: "#8A9A5B"
+}
+
 // Vista activa
 export type AppView =
   | 'agreement'
@@ -307,3 +330,4 @@ export type AppView =
   | 'backup'
   | 'exams'
   | 'providers'
+  | 'tags'

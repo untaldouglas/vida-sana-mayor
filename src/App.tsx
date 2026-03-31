@@ -17,6 +17,7 @@ import ShareExport from './components/ShareExport'
 import Settings from './components/Settings'
 import MedicalExams from './components/MedicalExams'
 import ServiceProviders from './components/ServiceProviders'
+import TagManager from './components/TagManager'
 import { AddProfileModal } from './components/Onboarding'
 
 // ---- Toast ----
@@ -131,6 +132,7 @@ export default function App() {
     backup: '💾 Respaldo',
     exams: '🔬 Exámenes médicos',
     providers: '🏥 Mis proveedores',
+    tags: '🏷️ Etiquetas',
   }
 
   return (
@@ -195,6 +197,7 @@ export default function App() {
         {view === 'share' && <ShareExport profile={activeProfile} appState={appState} showToast={showToast} />}
         {view === 'exams' && <MedicalExams profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
         {view === 'providers' && <ServiceProviders profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
+        {view === 'tags' && <TagManager profile={activeProfile} showToast={showToast} />}
         {view === 'settings' && (
           <Settings
             appState={appState}
@@ -216,6 +219,7 @@ export default function App() {
                 { icon: '📈', label: 'Mi progreso', v: 'progress' as AppView },
                 { icon: '📷', label: 'Escaneo y grabación', v: 'scan' as AppView },
                 { icon: '📤', label: 'Compartir y respaldo', v: 'share' as AppView },
+                { icon: '🏷️', label: 'Gestión de etiquetas', v: 'tags' as AppView },
               ].map(item => (
                 <button
                   key={item.v}
@@ -243,7 +247,7 @@ export default function App() {
         {NAV_ITEMS.map(item => (
           <button
             key={item.view}
-            className={`nav-btn ${view === item.view || (item.view === 'settings' && ['settings','record','doctors','progress','scan','share','exams','providers'].includes(view)) ? 'active' : ''}`}
+            className={`nav-btn ${view === item.view || (item.view === 'settings' && ['settings','record','doctors','progress','scan','share','exams','providers','tags'].includes(view)) ? 'active' : ''}`}
             onClick={() => setView(item.view)}
           >
             <span className="nav-icon">{item.icon}</span>

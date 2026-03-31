@@ -17,7 +17,8 @@ import type {
   SymptomEntry, ProgressRecord, MediaFile, ShareToken,
   MedicalExam, ServiceProvider, Rating,
   Allergy, Vaccine, Diagnosis, Medication, TakenRecord,
-  Consultation, LabResult, Surgery, FamilyHistory, AIConfig
+  Consultation, LabResult, Surgery, FamilyHistory, AIConfig,
+  Tag, TagEntityType
 } from './types'
 import {
   getDB, withTransaction, runSQL, querySQL,
@@ -1054,3 +1055,89 @@ export function speak(text: string): void {
 
 // Re-export persistSQL por si algún componente necesita forzar persistencia
 export { persistSQL }
+
+// ============================================================
+// Tags – etiquetas libres del usuario
+// ============================================================
+
+function mapTag(r: Row): Tag {
+  return {
+    id: str(r.id), profileId: str(r.profile_id),
+    name: str(r.name), category: str(r.category), color: str(r.color)
+  }
+}
+
+export async function getTags(profileId: string): Promise<Tag[]> {
+  const db = await getDB()
+  return querySQL<Row>(
+    db,
+    'SELECT * FROM tags WHERE profile_id = ? ORDER BY category, name',
+    [profileId]
+  ).map(mapTag)
+}
+
+export async function saveTag(tag: Tag): Promise<void> {
+  await withTransaction(db => {
+    runSQL(db,
+      `INSERT OR REPLACE INTO tags (id, profile_id, name, category, color)
+       VALUES (?,?,?,?,?)`,
+      [tag.id, tag.profileId, tag.name.trim(), tag.category.trim(), tag.color]
+    )
+  })
+}
+
+export async function deleteTag(tagId: string): Promise<void> {
+  // entity_tags se limpia automáticamente por FK ON DELETE CASCADE
+  await withTransaction(db => {
+    runSQL(db, 'DELETE FROM tags WHERE id = ?', [tagId])
+  })
+}
+
+/** Devuelve los tags asignados a una entidad específica */
+export async function getEntityTags(
+  entityType: TagEntityType,
+  entityId: string
+): Promise<Tag[]> {
+  const db = await getDB()
+  return querySQL<Row>(
+    db,
+    `SELECT t.* FROM tags t
+     JOIN entity_tags et ON et.tag_id = t.id
+     WHERE et.entity_type = ? AND et.entity_id = ?
+     ORDER BY t.category, t.name`,
+    [entityType, entityId]
+  ).map(mapTag)
+}
+
+/** Reemplaza completamente los tags de una entidad */
+export async function setEntityTags(
+  entityType: TagEntityType,
+  entityId: string,
+  tagIds: string[]
+): Promise<void> {
+  await withTransaction(db => {
+    runSQL(db,
+      'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?',
+      [entityType, entityId]
+    )
+    for (const tagId of tagIds) {
+      runSQL(db,
+        'INSERT OR IGNORE INTO entity_tags (tag_id, entity_type, entity_id) VALUES (?,?,?)',
+        [tagId, entityType, entityId]
+      )
+    }
+  })
+}
+
+/** Elimina todas las asignaciones de tags para una entidad (al borrar la entidad) */
+export async function clearEntityTags(
+  entityType: TagEntityType,
+  entityId: string
+): Promise<void> {
+  await withTransaction(db => {
+    runSQL(db,
+      'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?',
+      [entityType, entityId]
+    )
+  })
+}

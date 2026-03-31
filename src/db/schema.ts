@@ -339,6 +339,30 @@ CREATE TABLE IF NOT EXISTS exam_media (
   PRIMARY KEY (exam_id, media_id)
 );
 
+-- ── Etiquetas (tags) – taxonomía libre del usuario ───────────
+CREATE TABLE IF NOT EXISTS tags (
+  id         TEXT PRIMARY KEY,
+  profile_id TEXT NOT NULL
+             REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  name       TEXT NOT NULL,
+  category   TEXT NOT NULL DEFAULT '',
+  color      TEXT NOT NULL DEFAULT '#8A9A5B'
+);
+
+-- ── entity_tags: pivot polimórfico tags ↔ cualquier entidad ───
+-- entity_type: 'doctor'|'medication'|'consultation'|'exam'|
+--              'provider'|'appointment'|'media_file'|'diagnosis'|'allergy'
+-- No FK en entity_id porque es polimórfico; integridad garantizada
+-- en la capa de servicio (ON DELETE de la entidad padre limpia via trigger
+-- o via deleteTag/setEntityTags en storage.ts)
+CREATE TABLE IF NOT EXISTS entity_tags (
+  tag_id      TEXT NOT NULL
+              REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  entity_type TEXT NOT NULL,
+  entity_id   TEXT NOT NULL,
+  PRIMARY KEY (tag_id, entity_type, entity_id)
+);
+
 -- ── Índices para consultas frecuentes ─────────────────────────
 CREATE INDEX IF NOT EXISTS idx_media_profile        ON media_files(profile_id);
 CREATE INDEX IF NOT EXISTS idx_allergies_profile    ON allergies(profile_id);
@@ -366,4 +390,7 @@ CREATE INDEX IF NOT EXISTS idx_exams_profile        ON medical_exams(profile_id)
 CREATE INDEX IF NOT EXISTS idx_exams_date           ON medical_exams(date);
 CREATE INDEX IF NOT EXISTS idx_exams_doctor         ON medical_exams(doctor_id);
 CREATE INDEX IF NOT EXISTS idx_exams_provider       ON medical_exams(provider_id);
+CREATE INDEX IF NOT EXISTS idx_tags_profile         ON tags(profile_id);
+CREATE INDEX IF NOT EXISTS idx_entity_tags_tag      ON entity_tags(tag_id);
+CREATE INDEX IF NOT EXISTS idx_entity_tags_entity   ON entity_tags(entity_type, entity_id);
 `
