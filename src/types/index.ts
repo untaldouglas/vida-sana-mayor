@@ -24,8 +24,25 @@ export interface AppState {
   agreementAccepted: boolean
   pinHash: string | null
   authMethod: 'none' | 'pin' | 'biometric'
-  encryptionKey: string | null  // derivado del PIN, guardado cifrado
-  aiConfig?: AIConfig | null    // configuración opcional de IA del usuario
+  encryptionKey: string | null
+  aiConfig?: AIConfig | null
+  remindersEnabled?: boolean
+  reminderAdvanceMinutes?: number  // 0 = en punto, 5/15/30 = minutos antes
+}
+
+// ── Signos vitales ────────────────────────────────────────────
+export type VitalType = 'bp' | 'glucose' | 'weight' | 'heartRate' | 'temp' | 'spo2'
+
+export interface VitalSign {
+  id: string
+  profileId: string
+  date: string
+  time: string
+  type: VitalType
+  value: number      // sistólica para PA
+  value2?: number    // diastólica para PA
+  unit: string
+  notes?: string
 }
 
 // FHIR R4 - Expediente clínico
@@ -337,3 +354,5 @@ export type AppView =
   | 'providers'
   | 'tags'
   | 'emergency'
+  | 'vitals'
+  | 'print'

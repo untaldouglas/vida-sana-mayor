@@ -18,7 +18,7 @@ import type {
   MedicalExam, ServiceProvider, Rating,
   Allergy, Vaccine, Diagnosis, Medication, TakenRecord,
   Consultation, LabResult, Surgery, FamilyHistory, AIConfig,
-  Tag, TagEntityType
+  Tag, TagEntityType, VitalSign, VitalType
 } from './types'
 import {
   getDB, withTransaction, runSQL, querySQL,
@@ -292,9 +292,11 @@ export async function loadAppState(): Promise<AppState | null> {
     onboardingDone:    bool(s.onboarding_done),
     agreementAccepted: bool(s.agreement_accepted),
     pinHash:           ostr(s.pin_hash) ?? null,
-    authMethod:        str(s.auth_method) as AppState['authMethod'],
-    encryptionKey:     ostr(s.encryption_key) ?? null,
-    aiConfig:          s.ai_config ? JSON.parse(str(s.ai_config)) as AIConfig : null
+    authMethod:             str(s.auth_method) as AppState['authMethod'],
+    encryptionKey:          ostr(s.encryption_key) ?? null,
+    aiConfig:               s.ai_config ? JSON.parse(str(s.ai_config)) as AIConfig : null,
+    remindersEnabled:       bool(s.reminders_enabled),
+    reminderAdvanceMinutes: num(s.reminder_advance_minutes),
   }
 }
 
@@ -327,16 +329,19 @@ export async function saveAppState(state: AppState): Promise<void> {
     runSQL(db,
       `INSERT INTO app_state
          (id, active_profile_id, onboarding_done, agreement_accepted,
-          pin_hash, auth_method, encryption_key, ai_config)
-       VALUES ('main',?,?,?,?,?,?,?)
+          pin_hash, auth_method, encryption_key, ai_config,
+          reminders_enabled, reminder_advance_minutes)
+       VALUES ('main',?,?,?,?,?,?,?,?,?)
        ON CONFLICT(id) DO UPDATE SET
-         active_profile_id  = excluded.active_profile_id,
-         onboarding_done    = excluded.onboarding_done,
-         agreement_accepted = excluded.agreement_accepted,
-         pin_hash           = excluded.pin_hash,
-         auth_method        = excluded.auth_method,
-         encryption_key     = excluded.encryption_key,
-         ai_config          = excluded.ai_config`,
+         active_profile_id        = excluded.active_profile_id,
+         onboarding_done          = excluded.onboarding_done,
+         agreement_accepted       = excluded.agreement_accepted,
+         pin_hash                 = excluded.pin_hash,
+         auth_method              = excluded.auth_method,
+         encryption_key           = excluded.encryption_key,
+         ai_config                = excluded.ai_config,
+         reminders_enabled        = excluded.reminders_enabled,
+         reminder_advance_minutes = excluded.reminder_advance_minutes`,
       [
         state.activeProfileId ?? null,
         state.onboardingDone    ? 1 : 0,
@@ -344,7 +349,9 @@ export async function saveAppState(state: AppState): Promise<void> {
         state.pinHash    ?? null,
         state.authMethod,
         state.encryptionKey ?? null,
-        state.aiConfig ? JSON.stringify(state.aiConfig) : null
+        state.aiConfig ? JSON.stringify(state.aiConfig) : null,
+        state.remindersEnabled ? 1 : 0,
+        state.reminderAdvanceMinutes ?? 0,
       ]
     )
 
@@ -842,6 +849,53 @@ export async function deleteSymptom(id: string): Promise<void> {
     // (los blobs se limpian en deleteBlobsFor)
   })
   await deleteBlobsFor(blobIds)
+}
+
+// ============================================================
+// Signos vitales
+// ============================================================
+
+function mapVitalSign(r: Row): VitalSign {
+  return {
+    id: str(r.id), profileId: str(r.profile_id),
+    date: str(r.date), time: str(r.time),
+    type: str(r.type) as VitalType,
+    value: num(r.value), value2: r.value2 != null ? num(r.value2) : undefined,
+    unit: str(r.unit), notes: ostr(r.notes),
+  }
+}
+
+export async function getVitalSigns(profileId: string, type?: VitalType): Promise<VitalSign[]> {
+  const db = await getDB()
+  if (type) {
+    return querySQL<Row>(db,
+      'SELECT * FROM vital_signs WHERE profile_id=? AND type=? ORDER BY date DESC, time DESC',
+      [profileId, type]
+    ).map(mapVitalSign)
+  }
+  return querySQL<Row>(db,
+    'SELECT * FROM vital_signs WHERE profile_id=? ORDER BY date DESC, time DESC',
+    [profileId]
+  ).map(mapVitalSign)
+}
+
+export async function saveVitalSign(vs: VitalSign): Promise<void> {
+  await withTransaction(db => {
+    runSQL(db,
+      `INSERT INTO vital_signs (id, profile_id, date, time, type, value, value2, unit, notes)
+       VALUES (?,?,?,?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         date=excluded.date, time=excluded.time,
+         value=excluded.value, value2=excluded.value2,
+         unit=excluded.unit, notes=excluded.notes`,
+      [vs.id, vs.profileId, vs.date, vs.time, vs.type,
+       vs.value, vs.value2 ?? null, vs.unit, vs.notes ?? null]
+    )
+  })
+}
+
+export async function deleteVitalSign(id: string): Promise<void> {
+  await withTransaction(db => runSQL(db, 'DELETE FROM vital_signs WHERE id=?', [id]))
 }
 
 // ============================================================

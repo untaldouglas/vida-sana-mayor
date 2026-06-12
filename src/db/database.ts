@@ -59,7 +59,9 @@ export async function getDB(): Promise<Database> {
     `ALTER TABLE medications ADD COLUMN prescribing_consultation_id TEXT REFERENCES consultations(id) ON DELETE SET NULL ON UPDATE CASCADE`,
     `ALTER TABLE profiles    ADD COLUMN blood_type              TEXT`,
     `ALTER TABLE profiles    ADD COLUMN emergency_contact_name  TEXT`,
-    `ALTER TABLE profiles    ADD COLUMN emergency_contact_phone TEXT`
+    `ALTER TABLE profiles    ADD COLUMN emergency_contact_phone TEXT`,
+    `ALTER TABLE app_state   ADD COLUMN reminders_enabled        INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE app_state   ADD COLUMN reminder_advance_minutes INTEGER NOT NULL DEFAULT 0`
   ]
   for (const sql of COLUMN_MIGRATIONS) {
     try { _db.run(sql) } catch { /* columna ya existe en esta BD */ }

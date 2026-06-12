@@ -363,6 +363,21 @@ CREATE TABLE IF NOT EXISTS entity_tags (
   PRIMARY KEY (tag_id, entity_type, entity_id)
 );
 
+-- ── Signos vitales (1:N  profiles → vital_signs) ─────────────
+CREATE TABLE IF NOT EXISTS vital_signs (
+  id         TEXT PRIMARY KEY,
+  profile_id TEXT NOT NULL
+             REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  date       TEXT NOT NULL,
+  time       TEXT NOT NULL,
+  type       TEXT NOT NULL
+             CHECK(type IN ('bp','glucose','weight','heartRate','temp','spo2')),
+  value      REAL NOT NULL,
+  value2     REAL,
+  unit       TEXT NOT NULL,
+  notes      TEXT
+);
+
 -- ── Índices para consultas frecuentes ─────────────────────────
 CREATE INDEX IF NOT EXISTS idx_media_profile        ON media_files(profile_id);
 CREATE INDEX IF NOT EXISTS idx_allergies_profile    ON allergies(profile_id);
@@ -393,4 +408,7 @@ CREATE INDEX IF NOT EXISTS idx_exams_provider       ON medical_exams(provider_id
 CREATE INDEX IF NOT EXISTS idx_tags_profile         ON tags(profile_id);
 CREATE INDEX IF NOT EXISTS idx_entity_tags_tag      ON entity_tags(tag_id);
 CREATE INDEX IF NOT EXISTS idx_entity_tags_entity   ON entity_tags(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_vitals_profile       ON vital_signs(profile_id);
+CREATE INDEX IF NOT EXISTS idx_vitals_date          ON vital_signs(date);
+CREATE INDEX IF NOT EXISTS idx_vitals_type          ON vital_signs(type);
 `

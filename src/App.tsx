@@ -19,7 +19,10 @@ import MedicalExams from './components/MedicalExams'
 import ServiceProviders from './components/ServiceProviders'
 import TagManager from './components/TagManager'
 import EmergencyCard from './components/EmergencyCard'
+import VitalSigns from './components/VitalSigns'
+import PrintRecord from './components/PrintRecord'
 import { AddProfileModal } from './components/Onboarding'
+import { useReminders } from './hooks/useReminders'
 
 // ---- Toast ----
 interface ToastMsg { id: number; text: string; type: string }
@@ -115,6 +118,9 @@ export default function App() {
   const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId)
     ?? appState.profiles[0]
 
+  // Recordatorios de medicamentos (se activa solo si el usuario lo habilitó)
+  useReminders(activeProfile ?? null, appState)
+
   if (!activeProfile) {
     return <Onboarding onComplete={state => { setAppState(state); setAuthenticated(true) }} />
   }
@@ -146,6 +152,8 @@ export default function App() {
     providers: '🏥 Mis proveedores',
     tags: '🏷️ Etiquetas',
     emergency: '🆘 Emergencia',
+    vitals: '📊 Signos vitales',
+    print: '🖨️ Exportar expediente',
   }
 
   return (
@@ -211,8 +219,12 @@ export default function App() {
         {view === 'exams' && <MedicalExams profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
         {view === 'providers' && <ServiceProviders profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
         {view === 'tags' && <TagManager profile={activeProfile} showToast={showToast} />}
+        {view === 'vitals' && <VitalSigns profile={activeProfile} showToast={showToast} />}
         {view === 'emergency' && (
           <EmergencyCard profile={activeProfile} onClose={() => setView('dashboard')} />
+        )}
+        {view === 'print' && (
+          <PrintRecord profile={activeProfile} onClose={() => setView('settings')} />
         )}
         {view === 'settings' && (
           <Settings
@@ -229,6 +241,8 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
                 { icon: '📋', label: 'Expediente clínico', v: 'record' as AppView },
+                { icon: '📊', label: 'Signos vitales', v: 'vitals' as AppView },
+                { icon: '🖨️', label: 'Exportar expediente PDF', v: 'print' as AppView },
                 { icon: '🔬', label: 'Exámenes médicos', v: 'exams' as AppView },
                 { icon: '🏥', label: 'Proveedores de salud', v: 'providers' as AppView },
                 { icon: '👨‍⚕️', label: 'Mis doctores', v: 'doctors' as AppView },
@@ -263,7 +277,7 @@ export default function App() {
         {NAV_ITEMS.map(item => (
           <button
             key={item.view}
-            className={`nav-btn ${view === item.view || (item.view === 'settings' && ['settings','record','doctors','progress','scan','share','exams','providers','tags'].includes(view)) ? 'active' : ''}`}
+            className={`nav-btn ${view === item.view || (item.view === 'settings' && ['settings','record','doctors','progress','scan','share','exams','providers','tags','vitals','print'].includes(view)) ? 'active' : ''}`}
             onClick={() => setView(item.view)}
           >
             <span className="nav-icon">{item.icon}</span>

@@ -113,7 +113,7 @@ export default function Dashboard({ profile, onNavigate, aiConfig }: DashboardPr
             { icon: '😊', label: 'Síntomas', view: 'symptoms' as AppView },
             { icon: '📅', label: 'Agenda', view: 'agenda' as AppView },
             { icon: '👨‍⚕️', label: 'Doctores', view: 'doctors' as AppView },
-            { icon: '📈', label: 'Progreso', view: 'progress' as AppView },
+            { icon: '📊', label: 'Signos vitales', view: 'vitals' as AppView },
           ].map(item => (
             <button
               key={item.view}

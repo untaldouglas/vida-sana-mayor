@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { saveAppState, hashPin, importBackup } from '../storage'
 import type { AppState, BloodType, Profile } from '../types'
 import { AddProfileModal } from './Onboarding'
@@ -18,6 +18,35 @@ export default function Settings({ appState, onStateChange, showToast }: Setting
   const [newPin, setNewPin] = useState('')
   const [newPinConfirm, setNewPinConfirm] = useState('')
   const [importPin, setImportPin] = useState('')
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    'Notification' in window ? Notification.permission : 'denied'
+  )
+
+  useEffect(() => {
+    if ('Notification' in window) setNotifPermission(Notification.permission)
+  }, [])
+
+  async function requestNotifPermission() {
+    const result = await Notification.requestPermission()
+    setNotifPermission(result)
+    if (result === 'granted') showToast('🔔 Notificaciones activadas', 'success')
+    else showToast('⚠️ Permiso denegado en el navegador', 'warning')
+  }
+
+  async function saveReminderSettings(enabled: boolean, advance: number) {
+    const updated: AppState = { ...appState, remindersEnabled: enabled, reminderAdvanceMinutes: advance }
+    await saveAppState(updated)
+    onStateChange(updated)
+    showToast('🔔 Recordatorios actualizados', 'success')
+  }
+
+  function sendTestNotif() {
+    if (notifPermission !== 'granted') return
+    new Notification('💊 Hora de tu medicamento', {
+      body: 'Este es un recordatorio de prueba · Vida Sana Mayor',
+      icon: `${window.location.origin}/vida-sana-mayor/icons/icon-192.png`,
+    })
+  }
 
   const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId) ?? appState.profiles[0]
   const [ecName, setEcName] = useState(activeProfile?.emergencyContactName ?? '')
@@ -226,6 +255,79 @@ export default function Settings({ appState, onStateChange, showToast }: Setting
         <button className="btn btn-primary btn-full" onClick={saveEmergencyInfo}>
           💾 Guardar tarjeta de emergencia
         </button>
+      </div>
+
+      {/* Recordatorios de medicamentos */}
+      <div className="card">
+        <h3 className="card-title">🔔 Recordatorios de medicamentos</h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: 14 }}>
+          Recibe una notificación a la hora de cada medicamento registrado.
+        </p>
+
+        {notifPermission === 'denied' && (
+          <div style={{ background: '#FFF3CD', border: '1px solid #F4C430', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+            <p style={{ fontSize: '0.85rem', color: '#856404', fontWeight: 700 }}>
+              ⚠️ Notificaciones bloqueadas en el navegador
+            </p>
+            <p style={{ fontSize: '0.8rem', color: '#856404', marginTop: 4 }}>
+              Ve a Configuración del navegador → Privacidad → Notificaciones y permite este sitio.
+            </p>
+          </div>
+        )}
+
+        {notifPermission === 'default' && (
+          <button className="btn btn-primary btn-full" onClick={requestNotifPermission} style={{ marginBottom: 12 }}>
+            🔔 Permitir notificaciones
+          </button>
+        )}
+
+        {notifPermission === 'granted' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div>
+                <div style={{ fontWeight: 700 }}>Recordatorios</div>
+                <div style={{ fontSize: '0.83rem', color: 'var(--text-light)' }}>
+                  {appState.remindersEnabled ? '🔔 Activados' : '🔕 Desactivados'}
+                </div>
+              </div>
+              <button
+                className={`btn btn-sm ${appState.remindersEnabled ? 'btn-rose' : 'btn-primary'}`}
+                onClick={() => saveReminderSettings(!appState.remindersEnabled, appState.reminderAdvanceMinutes ?? 0)}
+              >
+                {appState.remindersEnabled ? 'Desactivar' : 'Activar'}
+              </button>
+            </div>
+
+            {appState.remindersEnabled && (
+              <>
+                <div className="form-group">
+                  <label>Avisar con anticipación</label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[0, 5, 15, 30].map(min => (
+                      <button
+                        key={min}
+                        onClick={() => saveReminderSettings(true, min)}
+                        style={{
+                          padding: '8px 14px', borderRadius: 10, fontWeight: 700,
+                          border: `2px solid ${(appState.reminderAdvanceMinutes ?? 0) === min ? '#8A9A5B' : 'var(--border)'}`,
+                          background: (appState.reminderAdvanceMinutes ?? 0) === min ? 'rgba(138,154,91,0.15)' : 'var(--bg)',
+                          color: (appState.reminderAdvanceMinutes ?? 0) === min ? '#6B7A46' : 'var(--text)',
+                          cursor: 'pointer', fontFamily: 'var(--font)', fontSize: '0.9rem',
+                        }}
+                      >
+                        {min === 0 ? 'En punto' : `${min} min antes`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button className="btn btn-outline btn-sm" onClick={sendTestNotif} style={{ marginTop: 4 }}>
+                  🧪 Enviar notificación de prueba
+                </button>
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* Inteligencia Artificial */}
