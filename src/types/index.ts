@@ -3,6 +3,8 @@
 // Basado en FHIR R4 (simplificado para uso offline)
 // ============================================================
 
+export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
+
 export interface Profile {
   id: string
   name: string
@@ -10,6 +12,9 @@ export interface Profile {
   isPrimary: boolean
   avatar?: string        // color hex o emoji
   createdAt: string
+  bloodType?: BloodType
+  emergencyContactName?: string
+  emergencyContactPhone?: string
 }
 
 export interface AppState {
@@ -331,3 +336,4 @@ export type AppView =
   | 'exams'
   | 'providers'
   | 'tags'
+  | 'emergency'

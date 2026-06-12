@@ -5,9 +5,10 @@ import type { AppState } from '../types'
 interface AuthProps {
   appState: AppState
   onUnlock: () => void
+  onEmergency: () => void
 }
 
-export default function Auth({ appState, onUnlock }: AuthProps) {
+export default function Auth({ appState, onUnlock, onEmergency }: AuthProps) {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [attempts, setAttempts] = useState(0)
@@ -111,6 +112,18 @@ export default function Auth({ appState, onUnlock }: AuthProps) {
           🫆 Usar biometría
         </button>
       )}
+
+      <button
+        onClick={onEmergency}
+        style={{
+          marginTop: 24, background: '#e74c3c', color: '#fff', border: 'none',
+          borderRadius: 14, padding: '14px 28px', cursor: 'pointer',
+          fontFamily: 'var(--font)', fontWeight: 800, fontSize: '1rem',
+          letterSpacing: 0.5, boxShadow: '0 4px 16px rgba(231,76,60,0.35)',
+        }}
+      >
+        🆘 Ver tarjeta de emergencia
+      </button>
     </div>
   )
 }

@@ -45,7 +45,10 @@ function mapProfile(r: Row): Profile {
   return {
     id: str(r.id), name: str(r.name), relation: str(r.relation),
     isPrimary: bool(r.is_primary), avatar: ostr(r.avatar),
-    createdAt: str(r.created_at)
+    createdAt: str(r.created_at),
+    bloodType: ostr(r.blood_type) as Profile['bloodType'] ?? undefined,
+    emergencyContactName:  ostr(r.emergency_contact_name)  ?? undefined,
+    emergencyContactPhone: ostr(r.emergency_contact_phone) ?? undefined,
   }
 }
 
@@ -302,15 +305,21 @@ export async function saveAppState(state: AppState): Promise<void> {
     //    que haría CASCADE y borraría todos los datos del perfil.
     for (const p of state.profiles) {
       runSQL(db,
-        `INSERT INTO profiles (id, name, relation, is_primary, avatar, created_at)
-         VALUES (?,?,?,?,?,?)
+        `INSERT INTO profiles
+           (id, name, relation, is_primary, avatar, created_at,
+            blood_type, emergency_contact_name, emergency_contact_phone)
+         VALUES (?,?,?,?,?,?,?,?,?)
          ON CONFLICT(id) DO UPDATE SET
-           name       = excluded.name,
-           relation   = excluded.relation,
-           is_primary = excluded.is_primary,
-           avatar     = excluded.avatar,
-           created_at = excluded.created_at`,
-        [p.id, p.name, p.relation, p.isPrimary ? 1 : 0, p.avatar ?? null, p.createdAt]
+           name                   = excluded.name,
+           relation               = excluded.relation,
+           is_primary             = excluded.is_primary,
+           avatar                 = excluded.avatar,
+           created_at             = excluded.created_at,
+           blood_type             = excluded.blood_type,
+           emergency_contact_name = excluded.emergency_contact_name,
+           emergency_contact_phone= excluded.emergency_contact_phone`,
+        [p.id, p.name, p.relation, p.isPrimary ? 1 : 0, p.avatar ?? null, p.createdAt,
+         p.bloodType ?? null, p.emergencyContactName ?? null, p.emergencyContactPhone ?? null]
       )
     }
 
@@ -363,16 +372,22 @@ export async function getProfiles(): Promise<Profile[]> {
 export async function saveProfile(profile: Profile): Promise<void> {
   await withTransaction(db => {
     runSQL(db,
-      `INSERT INTO profiles (id, name, relation, is_primary, avatar, created_at)
-       VALUES (?,?,?,?,?,?)
+      `INSERT INTO profiles
+         (id, name, relation, is_primary, avatar, created_at,
+          blood_type, emergency_contact_name, emergency_contact_phone)
+       VALUES (?,?,?,?,?,?,?,?,?)
        ON CONFLICT(id) DO UPDATE SET
-         name       = excluded.name,
-         relation   = excluded.relation,
-         is_primary = excluded.is_primary,
-         avatar     = excluded.avatar,
-         created_at = excluded.created_at`,
+         name                    = excluded.name,
+         relation                = excluded.relation,
+         is_primary              = excluded.is_primary,
+         avatar                  = excluded.avatar,
+         created_at              = excluded.created_at,
+         blood_type              = excluded.blood_type,
+         emergency_contact_name  = excluded.emergency_contact_name,
+         emergency_contact_phone = excluded.emergency_contact_phone`,
       [profile.id, profile.name, profile.relation, profile.isPrimary ? 1 : 0,
-       profile.avatar ?? null, profile.createdAt]
+       profile.avatar ?? null, profile.createdAt,
+       profile.bloodType ?? null, profile.emergencyContactName ?? null, profile.emergencyContactPhone ?? null]
     )
   })
 }

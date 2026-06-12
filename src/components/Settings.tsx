@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { saveAppState, hashPin, importBackup } from '../storage'
-import type { AppState, Profile } from '../types'
+import type { AppState, BloodType, Profile } from '../types'
 import { AddProfileModal } from './Onboarding'
 import AISettings from './AISettings'
+
+const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
 interface SettingsProps {
   appState: AppState
@@ -16,6 +18,28 @@ export default function Settings({ appState, onStateChange, showToast }: Setting
   const [newPin, setNewPin] = useState('')
   const [newPinConfirm, setNewPinConfirm] = useState('')
   const [importPin, setImportPin] = useState('')
+
+  const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId) ?? appState.profiles[0]
+  const [ecName, setEcName] = useState(activeProfile?.emergencyContactName ?? '')
+  const [ecPhone, setEcPhone] = useState(activeProfile?.emergencyContactPhone ?? '')
+  const [bloodType, setBloodType] = useState<BloodType | ''>(activeProfile?.bloodType ?? '')
+
+  async function saveEmergencyInfo() {
+    if (!activeProfile) return
+    const updatedProfile: Profile = {
+      ...activeProfile,
+      bloodType: bloodType || undefined,
+      emergencyContactName:  ecName.trim()  || undefined,
+      emergencyContactPhone: ecPhone.trim() || undefined,
+    }
+    const updated: AppState = {
+      ...appState,
+      profiles: appState.profiles.map(p => p.id === updatedProfile.id ? updatedProfile : p),
+    }
+    await saveAppState(updated)
+    onStateChange(updated)
+    showToast('🆘 Tarjeta de emergencia guardada', 'success')
+  }
 
   async function addProfile(profile: Profile) {
     const updated: AppState = { ...appState, profiles: [...appState.profiles, profile] }
@@ -149,6 +173,59 @@ export default function Settings({ appState, onStateChange, showToast }: Setting
             📂 Seleccionar archivo .vsm
           </span>
         </label>
+      </div>
+
+      {/* Tarjeta de emergencia */}
+      <div className="card" style={{ borderTop: '3px solid #e74c3c' }}>
+        <h3 className="card-title">🆘 Tarjeta de emergencia</h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: 14 }}>
+          Esta información se muestra sin necesidad de PIN para casos de urgencia médica.
+        </p>
+
+        <div className="form-group">
+          <label>Grupo sanguíneo</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {BLOOD_TYPES.map(bt => (
+              <button
+                key={bt}
+                onClick={() => setBloodType(prev => prev === bt ? '' : bt)}
+                style={{
+                  padding: '8px 16px', borderRadius: 10, fontWeight: 700,
+                  border: bloodType === bt ? '2px solid #e74c3c' : '2px solid var(--border)',
+                  background: bloodType === bt ? '#FFECEC' : 'var(--bg)',
+                  cursor: 'pointer', fontFamily: 'var(--font)', fontSize: '0.95rem',
+                  color: bloodType === bt ? '#c0392b' : 'var(--text)',
+                }}
+              >
+                {bt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Nombre del contacto de emergencia</label>
+          <input
+            type="text"
+            value={ecName}
+            onChange={e => setEcName(e.target.value)}
+            placeholder="Ej: María García (hija)"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Teléfono del contacto</label>
+          <input
+            type="tel"
+            value={ecPhone}
+            onChange={e => setEcPhone(e.target.value)}
+            placeholder="Ej: +503 7000-0000"
+          />
+        </div>
+
+        <button className="btn btn-primary btn-full" onClick={saveEmergencyInfo}>
+          💾 Guardar tarjeta de emergencia
+        </button>
       </div>
 
       {/* Inteligencia Artificial */}

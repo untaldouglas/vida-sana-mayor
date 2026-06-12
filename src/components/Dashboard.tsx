@@ -132,6 +132,33 @@ export default function Dashboard({ profile, onNavigate, aiConfig }: DashboardPr
         </div>
       </div>
 
+      {/* Tarjeta de emergencia */}
+      <button
+        onClick={() => onNavigate('emergency')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 14,
+          width: '100%', padding: '16px 20px', borderRadius: 16,
+          background: 'linear-gradient(135deg, #c0392b, #e74c3c)',
+          border: 'none', cursor: 'pointer', color: '#fff',
+          fontFamily: 'var(--font)', boxShadow: '0 4px 18px rgba(192,57,43,0.30)',
+          transition: 'transform 0.1s',
+        }}
+      >
+        <span style={{ fontSize: '2rem' }}>🆘</span>
+        <div style={{ textAlign: 'left' }}>
+          <div style={{ fontWeight: 800, fontSize: '1rem' }}>Tarjeta de emergencia</div>
+          <div style={{ fontSize: '0.8rem', opacity: 0.88 }}>
+            {profile.bloodType
+              ? `Tipo ${profile.bloodType} · `
+              : ''}
+            {profile.emergencyContactName
+              ? `Contacto: ${profile.emergencyContactName}`
+              : 'Toca para configurar'}
+          </div>
+        </div>
+        <span style={{ marginLeft: 'auto', fontSize: '1.3rem', opacity: 0.8 }}>›</span>
+      </button>
+
       {/* Próximas citas */}
       {upcomingAppts.length > 0 && (
         <div className="card">

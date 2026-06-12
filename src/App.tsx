@@ -18,6 +18,7 @@ import Settings from './components/Settings'
 import MedicalExams from './components/MedicalExams'
 import ServiceProviders from './components/ServiceProviders'
 import TagManager from './components/TagManager'
+import EmergencyCard from './components/EmergencyCard'
 import { AddProfileModal } from './components/Onboarding'
 
 // ---- Toast ----
@@ -30,6 +31,7 @@ export default function App() {
   const [view, setView] = useState<AppView>('dashboard')
   const [toasts, setToasts] = useState<ToastMsg[]>([])
   const [showAddProfile, setShowAddProfile] = useState(false)
+  const [showEmergency, setShowEmergency] = useState(false)
 
   useEffect(() => {
     loadAppState().then(state => {
@@ -97,7 +99,17 @@ export default function App() {
 
   // ---- Autenticación ----
   if (!authenticated && appState.authMethod !== 'none') {
-    return <Auth appState={appState} onUnlock={() => setAuthenticated(true)} />
+    const emergencyProfile = appState.profiles.find(p => p.id === appState.activeProfileId) ?? appState.profiles[0]
+    if (showEmergency && emergencyProfile) {
+      return <EmergencyCard profile={emergencyProfile} onClose={() => setShowEmergency(false)} />
+    }
+    return (
+      <Auth
+        appState={appState}
+        onUnlock={() => setAuthenticated(true)}
+        onEmergency={() => setShowEmergency(true)}
+      />
+    )
   }
 
   const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId)
@@ -133,6 +145,7 @@ export default function App() {
     exams: '🔬 Exámenes médicos',
     providers: '🏥 Mis proveedores',
     tags: '🏷️ Etiquetas',
+    emergency: '🆘 Emergencia',
   }
 
   return (
@@ -198,6 +211,9 @@ export default function App() {
         {view === 'exams' && <MedicalExams profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
         {view === 'providers' && <ServiceProviders profile={activeProfile} showToast={showToast} aiConfig={appState.aiConfig} />}
         {view === 'tags' && <TagManager profile={activeProfile} showToast={showToast} />}
+        {view === 'emergency' && (
+          <EmergencyCard profile={activeProfile} onClose={() => setView('dashboard')} />
+        )}
         {view === 'settings' && (
           <Settings
             appState={appState}
