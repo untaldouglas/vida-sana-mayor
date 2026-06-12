@@ -1,44 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vida Sana Mayor – Tu salud, en tus manos</title>
-  <meta name="description" content="App gratuita, 100% privada y offline para gestionar tu historial médico, medicamentos, citas y síntomas. Creada desde la experiencia de vivir con una enfermedad crónica." />
+  <meta name="description"
+    content="App gratuita, 100% privada y offline para gestionar tu historial médico, medicamentos, citas y síntomas. Creada desde la experiencia de vivir con una enfermedad crónica." />
   <meta name="theme-color" content="#8A9A5B" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Vida Sana Mayor – Tu salud, en tus manos" />
-  <meta property="og:description" content="App gratuita y 100% privada para gestionar tu historial médico y tratamientos. Creada por y para personas con enfermedades crónicas." />
+  <meta property="og:description"
+    content="App gratuita y 100% privada para gestionar tu historial médico y tratamientos. Creada por y para personas con enfermedades crónicas." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://untaldouglas.github.io/vida-sana-mayor/landing.html" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
 
   <style>
     /* ── Tokens ──────────────────────────────────────────────── */
     :root {
-      --cream:      #F7F2E5;
+      --cream: #F7F2E5;
       --cream-dark: #EDE7D4;
-      --olive:      #8A9A5B;
+      --olive: #8A9A5B;
       --olive-dark: #6B7A46;
-      --olive-pale: rgba(138,154,91,0.12);
-      --sun:        #F4C430;
-      --red:        #C0392B;
-      --text:       #2C2A24;
-      --text-soft:  #6B6456;
-      --white:      #FFFFFF;
-      --shadow:     0 4px 24px rgba(0,0,0,0.08);
-      --shadow-lg:  0 12px 48px rgba(0,0,0,0.13);
-      --radius:     16px;
-      --radius-sm:  10px;
+      --olive-pale: rgba(138, 154, 91, 0.12);
+      --sun: #F4C430;
+      --red: #C0392B;
+      --text: #2C2A24;
+      --text-soft: #6B6456;
+      --white: #FFFFFF;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.13);
+      --radius: 16px;
+      --radius-sm: 10px;
     }
 
     /* ── Reset ───────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; font-size: 16px; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
     body {
       font-family: 'Inter', system-ui, sans-serif;
       background: var(--cream);
@@ -46,194 +62,425 @@
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
-    img { max-width: 100%; display: block; }
-    a { color: inherit; text-decoration: none; }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
     /* ── Utilidades ──────────────────────────────────────────── */
-    .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-    .section    { padding: 88px 0; }
-    .section-sm { padding: 64px 0; }
-    .tag {
-      display: inline-block; font-size: 0.72rem; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--olive-dark); background: var(--olive-pale);
-      padding: 5px 12px; border-radius: 20px; margin-bottom: 16px;
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 20px;
     }
+
+    .section {
+      padding: 88px 0;
+    }
+
+    .section-sm {
+      padding: 64px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--olive-dark);
+      background: var(--olive-pale);
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
     .heading-xl {
       font-family: 'Lora', Georgia, serif;
       font-size: clamp(2rem, 5vw, 3.4rem);
-      font-weight: 700; line-height: 1.18; color: var(--text);
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--text);
     }
+
     .heading-lg {
       font-family: 'Lora', Georgia, serif;
       font-size: clamp(1.6rem, 4vw, 2.4rem);
-      font-weight: 700; line-height: 1.25;
+      font-weight: 700;
+      line-height: 1.25;
     }
+
     .lead {
       font-size: clamp(1rem, 2.5vw, 1.2rem);
-      color: var(--text-soft); line-height: 1.7; max-width: 620px;
+      color: var(--text-soft);
+      line-height: 1.7;
+      max-width: 620px;
     }
+
     .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 28px; border-radius: var(--radius-sm);
-      font-family: 'Inter', sans-serif; font-weight: 700;
-      font-size: 1rem; cursor: pointer; border: none;
-      transition: all 0.2s ease; text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-decoration: none;
       white-space: nowrap;
     }
+
     .btn-primary {
-      background: var(--olive); color: var(--white);
-      box-shadow: 0 4px 16px rgba(138,154,91,0.35);
+      background: var(--olive);
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(138, 154, 91, 0.35);
     }
-    .btn-primary:hover { background: var(--olive-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(138,154,91,0.4); }
+
+    .btn-primary:hover {
+      background: var(--olive-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(138, 154, 91, 0.4);
+    }
+
     .btn-ghost {
-      background: transparent; color: var(--text);
-      border: 2px solid rgba(44,42,36,0.2);
+      background: transparent;
+      color: var(--text);
+      border: 2px solid rgba(44, 42, 36, 0.2);
     }
-    .btn-ghost:hover { border-color: var(--olive); color: var(--olive-dark); transform: translateY(-2px); }
-    .btn-lg { padding: 17px 36px; font-size: 1.05rem; }
+
+    .btn-ghost:hover {
+      border-color: var(--olive);
+      color: var(--olive-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-lg {
+      padding: 17px 36px;
+      font-size: 1.05rem;
+    }
 
     /* ── Nav ─────────────────────────────────────────────────── */
     .nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(247,242,229,0.92); backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(138,154,91,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(247, 242, 229, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(138, 154, 91, 0.18);
       padding: 14px 0;
     }
+
     .nav-inner {
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
     }
+
     .nav-brand {
-      display: flex; align-items: center; gap: 10px;
-      font-family: 'Lora', serif; font-weight: 700; font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Lora', serif;
+      font-weight: 700;
+      font-size: 1.15rem;
     }
-    .nav-brand .icon { font-size: 1.5rem; }
-    .nav-links { display: flex; align-items: center; gap: 8px; }
+
+    .nav-brand .icon {
+      font-size: 1.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .nav-link {
-      font-size: 0.88rem; font-weight: 600; color: var(--text-soft);
-      padding: 6px 12px; border-radius: 8px; transition: all 0.15s;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.15s;
     }
-    .nav-link:hover { color: var(--olive-dark); background: var(--olive-pale); }
-    @media (max-width: 640px) { .nav-link { display: none; } }
+
+    .nav-link:hover {
+      color: var(--olive-dark);
+      background: var(--olive-pale);
+    }
+
+    @media (max-width: 640px) {
+      .nav-link {
+        display: none;
+      }
+    }
 
     /* ── Hero ────────────────────────────────────────────────── */
     .hero {
       padding: 88px 0 72px;
       background: linear-gradient(160deg, var(--cream) 0%, #EDE7D4 50%, #E5DBC4 100%);
-      position: relative; overflow: hidden;
+      position: relative;
+      overflow: hidden;
     }
+
     .hero::before {
       content: '☀️';
-      position: absolute; right: -2%; top: 10%;
+      position: absolute;
+      right: -2%;
+      top: 10%;
       font-size: clamp(180px, 30vw, 320px);
-      opacity: 0.06; pointer-events: none;
+      opacity: 0.06;
+      pointer-events: none;
       animation: floatSun 8s ease-in-out infinite;
     }
+
     @keyframes floatSun {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50%       { transform: translateY(-20px) rotate(5deg); }
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(5deg);
+      }
     }
-    .hero-content { max-width: 680px; }
+
+    .hero-content {
+      max-width: 680px;
+    }
+
     .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--white); border: 1px solid rgba(138,154,91,0.3);
-      border-radius: 20px; padding: 7px 16px;
-      font-size: 0.82rem; font-weight: 600; color: var(--text-soft);
-      margin-bottom: 28px; box-shadow: var(--shadow);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--white);
+      border: 1px solid rgba(138, 154, 91, 0.3);
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
     }
+
     .hero-badge .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--olive); animation: pulse 2s infinite;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--olive);
+      animation: pulse 2s infinite;
     }
+
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.6; transform: scale(0.85); }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(0.85);
+      }
     }
-    .hero h1 { margin-bottom: 20px; }
-    .hero h1 em { font-style: italic; color: var(--olive-dark); }
-    .hero .lead { margin-bottom: 40px; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+
+    .hero h1 {
+      margin-bottom: 20px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--olive-dark);
+    }
+
+    .hero .lead {
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
     .hero-trust {
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-      margin-top: 36px; font-size: 0.82rem; color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 36px;
+      font-size: 0.82rem;
+      color: var(--text-soft);
     }
+
     .hero-trust span {
-      display: flex; align-items: center; gap: 5px;
-      background: var(--white); padding: 5px 12px; border-radius: 20px;
-      border: 1px solid rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--white);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 0, 0, 0.07);
     }
 
     /* ── Historia ────────────────────────────────────────────── */
-    .story { background: var(--white); }
+    .story {
+      background: var(--white);
+    }
+
     .story-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
       align-items: center;
     }
-    @media (max-width: 768px) { .story-grid { grid-template-columns: 1fr; gap: 40px; } }
-    .story-visual {
-      display: flex; flex-direction: column; gap: 16px;
+
+    @media (max-width: 768px) {
+      .story-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
     }
+
+    .story-visual {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
     .story-quote {
-      background: linear-gradient(135deg, var(--olive-pale), rgba(244,196,48,0.08));
+      background: linear-gradient(135deg, var(--olive-pale), rgba(244, 196, 48, 0.08));
       border-left: 4px solid var(--olive);
       border-radius: 0 var(--radius) var(--radius) 0;
       padding: 24px 28px;
     }
+
     .story-quote blockquote {
-      font-family: 'Lora', serif; font-size: 1.15rem;
-      font-style: italic; line-height: 1.65; color: var(--text);
+      font-family: 'Lora', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      line-height: 1.65;
+      color: var(--text);
     }
+
     .story-quote cite {
-      display: block; margin-top: 12px;
-      font-size: 0.85rem; font-weight: 700; font-style: normal;
+      display: block;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-style: normal;
       color: var(--olive-dark);
     }
+
     .story-stats {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
+
     .story-stat {
-      background: var(--cream); border-radius: var(--radius-sm);
-      padding: 16px; text-align: center;
-      border: 1px solid rgba(138,154,91,0.15);
+      background: var(--cream);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+      border: 1px solid rgba(138, 154, 91, 0.15);
     }
+
     .story-stat .num {
-      font-size: 1.8rem; font-weight: 900; color: var(--olive-dark);
-      font-family: 'Lora', serif; line-height: 1;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--olive-dark);
+      font-family: 'Lora', serif;
+      line-height: 1;
     }
+
     .story-stat .lbl {
-      font-size: 0.75rem; color: var(--text-soft); margin-top: 4px; font-weight: 500;
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+      font-weight: 500;
     }
+
     .story-text p {
-      color: var(--text-soft); margin-bottom: 18px;
-      font-size: 1.02rem; line-height: 1.8;
+      color: var(--text-soft);
+      margin-bottom: 18px;
+      font-size: 1.02rem;
+      line-height: 1.8;
     }
-    .story-text p:last-child { margin-bottom: 0; }
-    .story-text strong { color: var(--text); }
+
+    .story-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    .story-text strong {
+      color: var(--text);
+    }
 
     /* ── Features ────────────────────────────────────────────── */
-    .features { background: var(--cream-dark); }
-    .features-intro { text-align: center; max-width: 600px; margin: 0 auto 52px; }
-    .features-intro .lead { margin: 12px auto 0; }
+    .features {
+      background: var(--cream-dark);
+    }
+
+    .features-intro {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 52px;
+    }
+
+    .features-intro .lead {
+      margin: 12px auto 0;
+    }
+
     .features-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 20px;
     }
+
     .feature-card {
-      background: var(--white); border-radius: var(--radius);
-      padding: 28px 24px; border: 1px solid rgba(138,154,91,0.12);
-      box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s;
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      border: 1px solid rgba(138, 154, 91, 0.12);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
     .feature-icon {
-      font-size: 2rem; margin-bottom: 14px;
+      font-size: 2rem;
+      margin-bottom: 14px;
       display: block;
     }
+
     .feature-card h3 {
-      font-size: 1.05rem; font-weight: 700; margin-bottom: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
     }
+
     .feature-card p {
-      font-size: 0.9rem; color: var(--text-soft); line-height: 1.65;
+      font-size: 0.9rem;
+      color: var(--text-soft);
+      line-height: 1.65;
     }
 
     /* ── Privacidad ──────────────────────────────────────────── */
@@ -241,665 +488,872 @@
       background: linear-gradient(135deg, #2C2A24 0%, #3D3B32 100%);
       color: var(--white);
     }
+
     .privacy-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
       align-items: center;
     }
-    @media (max-width: 768px) { .privacy-grid { grid-template-columns: 1fr; gap: 40px; } }
-    .privacy .heading-lg { color: var(--white); }
-    .privacy .lead { color: rgba(255,255,255,0.75); max-width: 100%; }
-    .privacy-pillars { display: flex; flex-direction: column; gap: 16px; }
-    .privacy-pillar {
-      display: flex; align-items: flex-start; gap: 16px;
-      background: rgba(255,255,255,0.06); border-radius: var(--radius-sm);
-      padding: 18px 20px; border: 1px solid rgba(255,255,255,0.1);
+
+    @media (max-width: 768px) {
+      .privacy-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
     }
-    .privacy-pillar .icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
-    .privacy-pillar h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
-    .privacy-pillar p { font-size: 0.85rem; color: rgba(255,255,255,0.65); line-height: 1.55; }
+
+    .privacy .heading-lg {
+      color: var(--white);
+    }
+
+    .privacy .lead {
+      color: rgba(255, 255, 255, 0.75);
+      max-width: 100%;
+    }
+
+    .privacy-pillars {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .privacy-pillar {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .privacy-pillar .icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .privacy-pillar h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .privacy-pillar p {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.55;
+    }
 
     /* ── Open Source ─────────────────────────────────────────── */
-    .opensource { background: var(--white); }
+    .opensource {
+      background: var(--white);
+    }
+
     .opensource-inner {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
       align-items: center;
     }
-    @media (max-width: 768px) { .opensource-inner { grid-template-columns: 1fr; gap: 36px; } }
+
+    @media (max-width: 768px) {
+      .opensource-inner {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+    }
+
     .os-code {
-      background: #1E1E1E; border-radius: var(--radius);
-      padding: 24px 28px; color: #E0E0E0;
+      background: #1E1E1E;
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      color: #E0E0E0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.88rem; line-height: 1.8;
+      font-size: 0.88rem;
+      line-height: 1.8;
       box-shadow: var(--shadow-lg);
     }
-    .os-code .c-green  { color: #6A9955; }
-    .os-code .c-yellow { color: #DCDCAA; }
-    .os-code .c-blue   { color: #9CDCFE; }
-    .os-code .c-orange { color: #CE9178; }
-    .opensource-text p { color: var(--text-soft); margin-bottom: 18px; font-size: 1.02rem; line-height: 1.8; }
+
+    .os-code .c-green {
+      color: #6A9955;
+    }
+
+    .os-code .c-yellow {
+      color: #DCDCAA;
+    }
+
+    .os-code .c-blue {
+      color: #9CDCFE;
+    }
+
+    .os-code .c-orange {
+      color: #CE9178;
+    }
+
+    .opensource-text p {
+      color: var(--text-soft);
+      margin-bottom: 18px;
+      font-size: 1.02rem;
+      line-height: 1.8;
+    }
 
     /* ── Registro ────────────────────────────────────────────── */
     .register {
       background: linear-gradient(160deg, var(--olive-pale) 0%, var(--cream) 100%);
     }
-    .register-inner { max-width: 680px; margin: 0 auto; text-align: center; }
-    .register-inner .heading-lg { margin-bottom: 12px; }
-    .register-inner .lead { margin: 0 auto 32px; text-align: center; }
+
+    .register-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .register-inner .heading-lg {
+      margin-bottom: 12px;
+    }
+
+    .register-inner .lead {
+      margin: 0 auto 32px;
+      text-align: center;
+    }
 
     .counter-badge {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: var(--white); border: 1px solid rgba(138,154,91,0.25);
-      border-radius: 24px; padding: 10px 22px;
-      font-size: 0.92rem; font-weight: 600; color: var(--text-soft);
-      margin-bottom: 36px; box-shadow: var(--shadow);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--white);
+      border: 1px solid rgba(138, 154, 91, 0.25);
+      border-radius: 24px;
+      padding: 10px 22px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      margin-bottom: 36px;
+      box-shadow: var(--shadow);
     }
+
     .counter-badge .count {
-      font-size: 1.4rem; font-weight: 900; color: var(--olive-dark);
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--olive-dark);
       font-family: 'Lora', serif;
     }
 
     .form-card {
-      background: var(--white); border-radius: var(--radius);
-      padding: 36px 32px; box-shadow: var(--shadow-lg);
-      border: 1px solid rgba(138,154,91,0.15);
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(138, 154, 91, 0.15);
       text-align: left;
     }
-    .form-group { margin-bottom: 20px; }
-    .form-group label {
-      display: block; font-size: 0.85rem; font-weight: 700;
-      color: var(--text); margin-bottom: 7px;
+
+    .form-group {
+      margin-bottom: 20px;
     }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 7px;
+    }
+
     .form-group input,
     .form-group textarea {
-      width: 100%; padding: 13px 16px;
-      border: 2px solid #E0D8C8; border-radius: var(--radius-sm);
-      font-family: 'Inter', sans-serif; font-size: 0.97rem;
-      color: var(--text); background: var(--cream);
+      width: 100%;
+      padding: 13px 16px;
+      border: 2px solid #E0D8C8;
+      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.97rem;
+      color: var(--text);
+      background: var(--cream);
       transition: border-color 0.2s;
       resize: vertical;
     }
+
     .form-group input:focus,
     .form-group textarea:focus {
-      outline: none; border-color: var(--olive);
+      outline: none;
+      border-color: var(--olive);
       background: var(--white);
     }
-    .form-group input::placeholder,
-    .form-group textarea::placeholder { color: #B0A898; }
-    .form-group textarea { min-height: 110px; }
 
-    .form-submit { width: 100%; justify-content: center; font-size: 1.05rem; padding: 15px; }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: #B0A898;
+    }
+
+    .form-group textarea {
+      min-height: 110px;
+    }
+
+    .form-submit {
+      width: 100%;
+      justify-content: center;
+      font-size: 1.05rem;
+      padding: 15px;
+    }
+
     .form-note {
-      text-align: center; font-size: 0.78rem;
-      color: var(--text-soft); margin-top: 14px; line-height: 1.55;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      margin-top: 14px;
+      line-height: 1.55;
     }
 
     .form-success {
-      display: none; text-align: center; padding: 32px 16px;
+      display: none;
+      text-align: center;
+      padding: 32px 16px;
     }
-    .form-success .big-icon { font-size: 3rem; margin-bottom: 12px; }
-    .form-success h3 { font-family: 'Lora', serif; font-size: 1.4rem; margin-bottom: 8px; }
-    .form-success p { color: var(--text-soft); font-size: 0.95rem; }
+
+    .form-success .big-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .form-success h3 {
+      font-family: 'Lora', serif;
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+
+    .form-success p {
+      color: var(--text-soft);
+      font-size: 0.95rem;
+    }
 
     /* ── Footer ──────────────────────────────────────────────── */
     .footer {
-      background: #2C2A24; color: rgba(255,255,255,0.7);
+      background: #2C2A24;
+      color: rgba(255, 255, 255, 0.7);
       padding: 52px 0 32px;
     }
+
     .footer-grid {
-      display: grid; grid-template-columns: 2fr 1fr 1fr;
-      gap: 48px; margin-bottom: 44px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 44px;
     }
-    @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr; gap: 32px; } }
-    .footer-brand .icon { font-size: 2rem; margin-bottom: 10px; }
+
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+    }
+
+    .footer-brand .icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
     .footer-brand .name {
-      font-family: 'Lora', serif; font-size: 1.2rem;
-      font-weight: 700; color: var(--white); margin-bottom: 8px;
+      font-family: 'Lora', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
     }
-    .footer-brand p { font-size: 0.85rem; line-height: 1.65; max-width: 300px; }
+
+    .footer-brand p {
+      font-size: 0.85rem;
+      line-height: 1.65;
+      max-width: 300px;
+    }
+
     .footer-col h4 {
-      font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em;
-      text-transform: uppercase; color: rgba(255,255,255,0.4);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
       margin-bottom: 14px;
     }
-    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .footer-col ul li a {
-      font-size: 0.88rem; color: rgba(255,255,255,0.65);
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.65);
       transition: color 0.15s;
     }
-    .footer-col ul li a:hover { color: var(--white); }
+
+    .footer-col ul li a:hover {
+      color: var(--white);
+    }
+
     .footer-bottom {
-      border-top: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding-top: 24px;
-      display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
       font-size: 0.8rem;
     }
+
     .footer-bottom .license {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.06); padding: 6px 14px;
-      border-radius: 20px; color: rgba(255,255,255,0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 6px 14px;
+      border-radius: 20px;
+      color: rgba(255, 255, 255, 0.5);
     }
 
     /* ── Animaciones de entrada ──────────────────────────────── */
     .fade-up {
-      opacity: 0; transform: translateY(28px);
+      opacity: 0;
+      transform: translateY(28px);
       transition: opacity 0.65s ease, transform 0.65s ease;
     }
-    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
+
 <body>
 
-<!-- ── Nav ──────────────────────────────────────────────────── -->
-<nav class="nav">
-  <div class="container nav-inner">
-    <a href="#inicio" class="nav-brand">
-      <span class="icon">☀️</span>
-      <span>Vida Sana Mayor</span>
-    </a>
-    <div class="nav-links">
-      <a href="#historia" class="nav-link">Historia</a>
-      <a href="#funcionalidades" class="nav-link">Funcionalidades</a>
-      <a href="#privacidad" class="nav-link">Privacidad</a>
-      <a href="#registro" class="btn btn-primary" style="padding:9px 20px;font-size:0.9rem;">
-        Unirme a la comunidad
+  <!-- ── Nav ──────────────────────────────────────────────────── -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="#inicio" class="nav-brand">
+        <span class="icon">☀️</span>
+        <span>Vida Sana Mayor</span>
       </a>
-    </div>
-  </div>
-</nav>
-
-<!-- ── Hero ─────────────────────────────────────────────────── -->
-<section class="hero" id="inicio">
-  <div class="container">
-    <div class="hero-content fade-up">
-      <div class="hero-badge">
-        <div class="dot"></div>
-        App gratuita · 100% offline · Open Source
-      </div>
-
-      <h1 class="heading-xl">
-        Tu salud merece<br/>el mejor <em>cuidado.</em>
-      </h1>
-
-      <p class="lead">
-        Gestiona tu historial médico, medicamentos, citas y síntomas
-        con total privacidad. Sin servidores. Sin suscripciones.
-        Tus datos siempre contigo.
-      </p>
-
-      <div class="hero-actions">
-        <a href="https://untaldouglas.github.io/vida-sana-mayor/"
-           target="_blank" rel="noopener"
-           class="btn btn-primary btn-lg">
-          ☀️ Usar la app gratis
-        </a>
-        <a href="https://github.com/untaldouglas/vida-sana-mayor"
-           target="_blank" rel="noopener"
-           class="btn btn-ghost btn-lg">
-          ⌥ Ver código en GitHub
+      <div class="nav-links">
+        <a href="#historia" class="nav-link">Historia</a>
+        <a href="#funcionalidades" class="nav-link">Funcionalidades</a>
+        <a href="#privacidad" class="nav-link">Privacidad</a>
+        <a href="#registro" class="btn btn-primary" style="padding:9px 20px;font-size:0.9rem;">
+          Unirme a la comunidad
         </a>
       </div>
-
-      <div class="hero-trust">
-        <span>🔒 Sin cuenta requerida</span>
-        <span>📴 Funciona offline</span>
-        <span>🧬 Open Source</span>
-        <span>💊 Para enfermedades crónicas</span>
-      </div>
     </div>
-  </div>
-</section>
+  </nav>
 
-<!-- ── Historia personal ─────────────────────────────────────── -->
-<section class="story section" id="historia">
-  <div class="container">
-    <div class="story-grid">
-      <div class="story-visual fade-up">
-        <div class="story-quote">
-          <blockquote>
-            "Después de todo, ¿quién no ha padecido una enfermedad,
-            o ha tenido el privilegio difícil de acompañar a un ser
-            querido durante su tratamiento?"
-          </blockquote>
-          <cite>— Douglas Galindo, creador de Vida Sana Mayor</cite>
+  <!-- ── Hero ─────────────────────────────────────────────────── -->
+  <section class="hero" id="inicio">
+    <div class="container">
+      <div class="hero-content fade-up">
+        <div class="hero-badge">
+          <div class="dot"></div>
+          App gratuita · 100% offline · Open Source
         </div>
 
-        <div class="story-stats">
-          <div class="story-stat">
-            <div class="num">3</div>
-            <div class="lbl">años de experiencia vivida</div>
-          </div>
-          <div class="story-stat">
-            <div class="num">2</div>
-            <div class="lbl">cirugías y aplicaciones de yodo</div>
-          </div>
-          <div class="story-stat">
-            <div class="num">∞</div>
-            <div class="lbl">expedientes, recetas y audios organizados</div>
-          </div>
-          <div class="story-stat">
-            <div class="num">100%</div>
-            <div class="lbl">open source y gratuito para siempre</div>
-          </div>
-        </div>
-      </div>
+        <h1 class="heading-xl">
+          Tu salud merece<br />el mejor <em>cuidado.</em>
+        </h1>
 
-      <div class="story-text fade-up">
-        <span class="tag">La historia detrás</span>
-        <h2 class="heading-lg" style="margin-bottom:24px;">
-          Nació de la necesidad real.
-        </h2>
-
-        <p>
-          Hace tres años, un diagnóstico de cáncer cambió la vida de Douglas Galindo,
-          desarrollador de software salvadoreño. Como muchos pacientes, comenzó a
-          acumular un mar de documentos: <strong>recetas, resultados de laboratorio,
-          informes de radiología, grabaciones de citas con especialistas</strong>,
-          notas de cirugías y aplicaciones de yodo radiactivo.
-        </p>
-
-        <p>
-          Desde el inicio recurrió a herramientas de inteligencia artificial para
-          intentar organizar todo eso. Pero pronto aprendió algo que ningún médico
-          le había explicado: <strong>confiar tu historial de salud a plataformas
-          externas tiene riesgos</strong>. La privacidad de los datos médicos importa —
-          y mucho.
-        </p>
-
-        <p>
-          Con la experiencia acumulada, Douglas tomó una decisión. Como informático,
-          construiría la herramienta que hubiera querido tener desde el primer día.
-          Una app que <strong>guarda todo localmente en tu dispositivo</strong>,
-          que no necesita internet, que no requiere crear una cuenta, y que tú
-          controlas por completo.
-        </p>
-
-        <p>
-          Y la puso en <strong>código abierto</strong>, porque la salud es un bien
-          colectivo — y porque la comunidad de usuarios y desarrolladores puede
-          mejorarla para el bien de todos.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Funcionalidades ───────────────────────────────────────── -->
-<section class="features section" id="funcionalidades">
-  <div class="container">
-    <div class="features-intro fade-up">
-      <span class="tag">Funcionalidades</span>
-      <h2 class="heading-lg">Todo lo que necesitas, en un solo lugar.</h2>
-      <p class="lead">
-        Diseñada para pacientes con enfermedades crónicas y para quienes
-        los cuidan. Sin simplificaciones. Sin compromisos.
-      </p>
-    </div>
-
-    <div class="features-grid">
-      <div class="feature-card fade-up">
-        <span class="feature-icon">💊</span>
-        <h3>Medicamentos con recordatorios</h3>
-        <p>Registra cada medicamento, dosis y horario. Recibe notificaciones locales en la hora exacta. Control de inventario con alertas de reabastecimiento.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">📋</span>
-        <h3>Expediente clínico completo</h3>
-        <p>Diagnósticos, alergias, vacunas, cirugías, antecedentes familiares y consultas con tu médico — todo estructurado y siempre disponible.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">📊</span>
-        <h3>Signos vitales con gráficas</h3>
-        <p>Registra presión arterial, glucosa, peso, frecuencia cardíaca, temperatura y saturación de oxígeno. Visualiza tendencias en el tiempo.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">😊</span>
-        <h3>Diario de síntomas</h3>
-        <p>Registra cómo te sientes día a día con grabación de voz. Gráficas de tendencia de dolor que puedes compartir con tu médico.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">🆘</span>
-        <h3>Tarjeta de emergencia</h3>
-        <p>Accesible sin necesidad de PIN. Muestra grupo sanguíneo, alergias críticas, medicamentos actuales y contacto de emergencia. Con código QR.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">🖨️</span>
-        <h3>Exportación a PDF</h3>
-        <p>Genera un expediente completo imprimible para llevar a tus consultas médicas. Todo tu historial en un documento profesional.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">📅</span>
-        <h3>Agenda de citas</h3>
-        <p>Organiza tus citas médicas con recordatorios. Vista de calendario semanal. Nunca más pierdas una consulta importante.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">🤖</span>
-        <h3>Asistente de IA opcional</h3>
-        <p>Conecta tu propio modelo de IA (local con Ollama o vía API) para analizar resultados y generar resúmenes. Tú eliges si lo activas.</p>
-      </div>
-      <div class="feature-card fade-up">
-        <span class="feature-icon">👨‍👩‍👧</span>
-        <h3>Perfiles múltiples</h3>
-        <p>Gestiona el expediente de toda tu familia desde un mismo dispositivo. Ideal para cuidadores de adultos mayores o padres de niños con enfermedades crónicas.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Privacidad ────────────────────────────────────────────── -->
-<section class="privacy section" id="privacidad">
-  <div class="container">
-    <div class="privacy-grid">
-      <div class="fade-up">
-        <span class="tag" style="background:rgba(138,154,91,0.2);color:#A8C07A;">Privacidad primero</span>
-        <h2 class="heading-lg" style="margin:16px 0 20px;">
-          Tus datos son tuyos.<br/>
-          <em style="color:#A8C07A;font-style:italic;">Punto.</em>
-        </h2>
         <p class="lead">
-          Los datos médicos son lo más íntimo que existe. Vida Sana Mayor
-          fue diseñada con una premisa irrenunciable: tu información no
-          sale de tu dispositivo.
+          Gestiona tu historial médico, medicamentos, citas y síntomas
+          con total privacidad. Sin servidores. Sin suscripciones.
+          Tus datos siempre contigo.
         </p>
-      </div>
 
-      <div class="privacy-pillars fade-up">
-        <div class="privacy-pillar">
-          <span class="icon">📴</span>
-          <div>
-            <h4>100% Offline</h4>
-            <p>La app funciona sin conexión a internet. Toda la información se guarda localmente en tu dispositivo usando SQLite embebido.</p>
-          </div>
-        </div>
-        <div class="privacy-pillar">
-          <span class="icon">🔒</span>
-          <div>
-            <h4>Cifrado con PIN</h4>
-            <p>Protege el acceso con un PIN personal. Tus respaldos se exportan cifrados — solo tú puedes abrirlos.</p>
-          </div>
-        </div>
-        <div class="privacy-pillar">
-          <span class="icon">🚫</span>
-          <div>
-            <h4>Cero telemetría</h4>
-            <p>Sin análisis de uso, sin publicidad, sin seguimiento. La app no sabe quién eres ni qué padeces.</p>
-          </div>
-        </div>
-        <div class="privacy-pillar">
-          <span class="icon">🧬</span>
-          <div>
-            <h4>Código abierto verificable</h4>
-            <p>Cualquier desarrollador puede auditar el código fuente en GitHub y verificar que cumple estas promesas.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Open Source ───────────────────────────────────────────── -->
-<section class="opensource section-sm" id="opensource">
-  <div class="container">
-    <div class="opensource-inner">
-      <div class="fade-up">
-        <span class="tag">Open Source · Apache 2.0</span>
-        <h2 class="heading-lg" style="margin:16px 0 20px;">Construida para ser mejorada por todos.</h2>
-        <div class="opensource-text">
-          <p>
-            Vida Sana Mayor es de código abierto bajo licencia Apache 2.0.
-            Puedes usarla, estudiarla, modificarla y distribuirla libremente —
-            respetando los créditos del autor.
-          </p>
-          <p>
-            Si eres desarrollador y quieres contribuir con nuevas funciones,
-            traducciones o correcciones, el repositorio está abierto a tus
-            aportaciones. Porque la salud es un bien colectivo.
-          </p>
-        </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;">
-          <a href="https://github.com/untaldouglas/vida-sana-mayor"
-             target="_blank" rel="noopener" class="btn btn-primary">
-            Ver repositorio en GitHub
+        <div class="hero-actions">
+          <a href="https://untaldouglas.github.io/vida-sana-mayor/" target="_blank" rel="noopener"
+            class="btn btn-primary btn-lg">
+            ☀️ Usar la app gratis
           </a>
-          <a href="https://github.com/untaldouglas/vida-sana-mayor/issues"
-             target="_blank" rel="noopener" class="btn btn-ghost">
-            Reportar o sugerir
+          <a href="https://github.com/untaldouglas/vida-sana-mayor" target="_blank" rel="noopener"
+            class="btn btn-ghost btn-lg">
+            ⌥ Ver código en GitHub
           </a>
         </div>
-      </div>
 
-      <div class="os-code fade-up">
-        <div><span class="c-green">// Vida Sana Mayor</span></div>
-        <div><span class="c-green">// Apache License 2.0</span></div>
-        <div>&nbsp;</div>
-        <div><span class="c-blue">stack</span> = {</div>
-        <div>&nbsp; <span class="c-yellow">frontend</span>: <span class="c-orange">"React + Vite"</span>,</div>
-        <div>&nbsp; <span class="c-yellow">storage</span>: <span class="c-orange">"SQLite WASM"</span>,</div>
-        <div>&nbsp; <span class="c-yellow">tests</span>: <span class="c-orange">"Playwright E2E"</span>,</div>
-        <div>&nbsp; <span class="c-yellow">deploy</span>: <span class="c-orange">"GitHub Pages"</span>,</div>
-        <div>&nbsp; <span class="c-yellow">backend</span>: <span class="c-orange">"ninguno"</span>,</div>
-        <div>&nbsp; <span class="c-yellow">costo</span>: <span class="c-orange">"$0"</span>,</div>
-        <div>}</div>
-        <div>&nbsp;</div>
-        <div><span class="c-green">// Tus datos nunca salen</span></div>
-        <div><span class="c-green">// de tu dispositivo.</span></div>
+        <div class="hero-trust">
+          <span>🔒 Sin cuenta requerida</span>
+          <span>📴 Funciona offline</span>
+          <span>🧬 Open Source</span>
+          <span>💊 Para enfermedades crónicas</span>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Registro ──────────────────────────────────────────────── -->
-<section class="register section" id="registro">
-  <div class="container">
-    <div class="register-inner">
-      <div class="fade-up">
-        <span class="tag">Comunidad</span>
-        <h2 class="heading-lg">Únete. Cuéntame tu historia.</h2>
+  <!-- ── Historia personal ─────────────────────────────────────── -->
+  <section class="story section" id="historia">
+    <div class="container">
+      <div class="story-grid">
+        <div class="story-visual fade-up">
+          <div class="story-quote">
+            <blockquote>
+              "Después de todo, ¿quién no ha padecido una enfermedad,
+              o ha tenido el privilegio difícil de acompañar a un ser
+              querido durante su tratamiento?"
+            </blockquote>
+            <cite>— Douglas Galindo, creador de Vida Sana Mayor</cite>
+          </div>
+
+          <div class="story-stats">
+            <div class="story-stat">
+              <div class="num">3</div>
+              <div class="lbl">años de experiencia vivida</div>
+            </div>
+            <div class="story-stat">
+              <div class="num">2</div>
+              <div class="lbl">cirugías y aplicaciones de yodo</div>
+            </div>
+            <div class="story-stat">
+              <div class="num">∞</div>
+              <div class="lbl">expedientes, recetas y audios organizados</div>
+            </div>
+            <div class="story-stat">
+              <div class="num">100%</div>
+              <div class="lbl">open source y gratuito para siempre</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="story-text fade-up">
+          <span class="tag">La historia detrás</span>
+          <h2 class="heading-lg" style="margin-bottom:24px;">
+            Nació de la necesidad real.
+          </h2>
+
+          <p>
+            Hace tres años, un diagnóstico de cáncer cambió la vida de Douglas Galindo,
+            desarrollador de software salvadoreño. Como muchos pacientes, comenzó a
+            acumular un mar de documentos: <strong>recetas, resultados de laboratorio,
+              informes de radiología, grabaciones de citas con especialistas</strong>,
+            notas de cirugías y aplicaciones de yodo radiactivo.
+          </p>
+
+          <p>
+            Desde el inicio recurrió a herramientas de inteligencia artificial para
+            intentar organizar todo eso. Pero pronto aprendió algo que ningún médico
+            le había explicado: <strong>confiar tu historial de salud a plataformas
+              externas tiene riesgos</strong>. La privacidad de los datos médicos importa —
+            y mucho.
+          </p>
+
+          <p>
+            Con la experiencia acumulada, Douglas tomó una decisión. Como informático,
+            construiría la herramienta que hubiera querido tener desde el primer día.
+            Una app que <strong>guarda todo localmente en tu dispositivo</strong>,
+            que no necesita internet, que no requiere crear una cuenta, y que tú
+            controlas por completo.
+          </p>
+
+          <p>
+            Y la puso en <strong>código abierto</strong>, porque la salud es un bien
+            colectivo — y porque la comunidad de usuarios y desarrolladores puede
+            mejorarla para el bien de todos.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Funcionalidades ───────────────────────────────────────── -->
+  <section class="features section" id="funcionalidades">
+    <div class="container">
+      <div class="features-intro fade-up">
+        <span class="tag">Funcionalidades</span>
+        <h2 class="heading-lg">Todo lo que necesitas, en un solo lugar.</h2>
         <p class="lead">
-          Déjame tu correo y un mensaje. Me ayuda saber cómo la app
-          puede ser útil para ti o para alguien que quieres.
+          Diseñada para pacientes con enfermedades crónicas y para quienes
+          los cuidan. Sin simplificaciones. Sin compromisos.
         </p>
       </div>
 
-      <div class="counter-badge fade-up" id="counter-badge">
-        <span>🌿</span>
-        <span>Ya somos <strong class="count" id="counter-num">…</strong> personas en esta comunidad</span>
+      <div class="features-grid">
+        <div class="feature-card fade-up">
+          <span class="feature-icon">💊</span>
+          <h3>Medicamentos con recordatorios</h3>
+          <p>Registra cada medicamento, dosis y horario. Recibe notificaciones locales en la hora exacta. Control de
+            inventario con alertas de reabastecimiento.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">📋</span>
+          <h3>Expediente clínico completo</h3>
+          <p>Diagnósticos, alergias, vacunas, cirugías, antecedentes familiares y consultas con tu médico — todo
+            estructurado y siempre disponible.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">📊</span>
+          <h3>Signos vitales con gráficas</h3>
+          <p>Registra presión arterial, glucosa, peso, frecuencia cardíaca, temperatura y saturación de oxígeno.
+            Visualiza tendencias en el tiempo.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">😊</span>
+          <h3>Diario de síntomas</h3>
+          <p>Registra cómo te sientes día a día con grabación de voz. Gráficas de tendencia de dolor que puedes
+            compartir con tu médico.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">🆘</span>
+          <h3>Tarjeta de emergencia</h3>
+          <p>Accesible sin necesidad de PIN. Muestra grupo sanguíneo, alergias críticas, medicamentos actuales y
+            contacto de emergencia. Con código QR.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">🖨️</span>
+          <h3>Exportación a PDF</h3>
+          <p>Genera un expediente completo imprimible para llevar a tus consultas médicas. Todo tu historial en un
+            documento profesional.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">📅</span>
+          <h3>Agenda de citas</h3>
+          <p>Organiza tus citas médicas con recordatorios. Vista de calendario semanal. Nunca más pierdas una consulta
+            importante.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">🤖</span>
+          <h3>Asistente de IA opcional</h3>
+          <p>Conecta tu propio modelo de IA (local con Ollama o vía API) para analizar resultados y generar resúmenes.
+            Tú eliges si lo activas.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <span class="feature-icon">👨‍👩‍👧</span>
+          <h3>Perfiles múltiples</h3>
+          <p>Gestiona el expediente de toda tu familia desde un mismo dispositivo. Ideal para cuidadores de adultos
+            mayores o padres de niños con enfermedades crónicas.</p>
+        </div>
       </div>
+    </div>
+  </section>
 
-      <div class="form-card fade-up">
-        <!-- Formulario visible -->
-        <form id="register-form">
-          <div class="form-group">
-            <label for="field-name">Tu nombre <span style="color:#aaa;font-weight:400;">(opcional)</span></label>
-            <input type="text" id="field-name" name="name"
-                   placeholder="¿Cómo te llamas?" autocomplete="name" />
-          </div>
-
-          <div class="form-group">
-            <label for="field-email">Correo electrónico <span style="color:#e74c3c;">*</span></label>
-            <input type="email" id="field-email" name="email" required
-                   placeholder="tu@correo.com" autocomplete="email" />
-          </div>
-
-          <div class="form-group">
-            <label for="field-message">Tu mensaje <span style="color:#e74c3c;">*</span></label>
-            <textarea id="field-message" name="message" required
-                      placeholder="¿Qué te trajo aquí? ¿Cómo podría ayudarte esta app?&#10;&#10;Puedes escribir en el idioma que prefieras."></textarea>
-          </div>
-
-          <!-- Honeypot anti-spam -->
-          <input type="text" name="_honey" style="display:none;" tabindex="-1" autocomplete="off" />
-
-          <button type="submit" class="btn btn-primary form-submit" id="submit-btn">
-            <span id="submit-text">Enviar y unirme a la comunidad 🌿</span>
-          </button>
-
-          <p class="form-note">
-            Al enviar, aceptas que Douglas Galindo reciba tu correo para
-            contactarte sobre Vida Sana Mayor. No hay spam, nunca. 🙏
+  <!-- ── Privacidad ────────────────────────────────────────────── -->
+  <section class="privacy section" id="privacidad">
+    <div class="container">
+      <div class="privacy-grid">
+        <div class="fade-up">
+          <span class="tag" style="background:rgba(138,154,91,0.2);color:#A8C07A;">Privacidad primero</span>
+          <h2 class="heading-lg" style="margin:16px 0 20px;">
+            Tus datos son tuyos.<br />
+            <em style="color:#A8C07A;font-style:italic;">Punto.</em>
+          </h2>
+          <p class="lead">
+            Los datos médicos son lo más íntimo que existe. Vida Sana Mayor
+            fue diseñada con una premisa irrenunciable: tu información no
+            sale de tu dispositivo.
           </p>
-        </form>
+        </div>
 
-        <!-- Mensaje de éxito -->
-        <div class="form-success" id="form-success">
-          <div class="big-icon">🌻</div>
-          <h3>¡Gracias por escribir!</h3>
-          <p>Tu mensaje llegó. Douglas lo leerá personalmente y te responderá en cuanto pueda.</p>
-          <p style="margin-top:12px;">Mientras tanto, puedes
-            <a href="https://untaldouglas.github.io/vida-sana-mayor/"
-               target="_blank" rel="noopener"
-               style="color:var(--olive-dark);font-weight:700;">
-              abrir la app ahora mismo →
+        <div class="privacy-pillars fade-up">
+          <div class="privacy-pillar">
+            <span class="icon">📴</span>
+            <div>
+              <h4>100% Offline</h4>
+              <p>La app funciona sin conexión a internet. Toda la información se guarda localmente en tu dispositivo
+                usando SQLite embebido.</p>
+            </div>
+          </div>
+          <div class="privacy-pillar">
+            <span class="icon">🔒</span>
+            <div>
+              <h4>Cifrado con PIN</h4>
+              <p>Protege el acceso con un PIN personal. Tus respaldos se exportan cifrados — solo tú puedes abrirlos.
+              </p>
+            </div>
+          </div>
+          <div class="privacy-pillar">
+            <span class="icon">🚫</span>
+            <div>
+              <h4>Cero telemetría</h4>
+              <p>Sin análisis de uso, sin publicidad, sin seguimiento. La app no sabe quién eres ni qué padeces.</p>
+            </div>
+          </div>
+          <div class="privacy-pillar">
+            <span class="icon">🧬</span>
+            <div>
+              <h4>Código abierto verificable</h4>
+              <p>Cualquier desarrollador puede auditar el código fuente en GitHub y verificar que cumple estas promesas.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Open Source ───────────────────────────────────────────── -->
+  <section class="opensource section-sm" id="opensource">
+    <div class="container">
+      <div class="opensource-inner">
+        <div class="fade-up">
+          <span class="tag">Open Source · Apache 2.0</span>
+          <h2 class="heading-lg" style="margin:16px 0 20px;">Construida para ser mejorada por todos.</h2>
+          <div class="opensource-text">
+            <p>
+              Vida Sana Mayor es de código abierto bajo licencia Apache 2.0.
+              Puedes usarla, estudiarla, modificarla y distribuirla libremente —
+              respetando los créditos del autor.
+            </p>
+            <p>
+              Si eres desarrollador y quieres contribuir con nuevas funciones,
+              traducciones o correcciones, el repositorio está abierto a tus
+              aportaciones. Porque la salud es un bien colectivo.
+            </p>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;">
+            <a href="https://github.com/untaldouglas/vida-sana-mayor" target="_blank" rel="noopener"
+              class="btn btn-primary">
+              Ver repositorio en GitHub
             </a>
-          </p>
+            <a href="https://github.com/untaldouglas/vida-sana-mayor/issues" target="_blank" rel="noopener"
+              class="btn btn-ghost">
+              Reportar o sugerir
+            </a>
+          </div>
+        </div>
+
+        <div class="os-code fade-up">
+          <div><span class="c-green">// Vida Sana Mayor</span></div>
+          <div><span class="c-green">// Apache License 2.0</span></div>
+          <div>&nbsp;</div>
+          <div><span class="c-blue">stack</span> = {</div>
+          <div>&nbsp; <span class="c-yellow">frontend</span>: <span class="c-orange">"React + Vite"</span>,</div>
+          <div>&nbsp; <span class="c-yellow">storage</span>: <span class="c-orange">"SQLite WASM"</span>,</div>
+          <div>&nbsp; <span class="c-yellow">tests</span>: <span class="c-orange">"Playwright E2E"</span>,</div>
+          <div>&nbsp; <span class="c-yellow">deploy</span>: <span class="c-orange">"GitHub Pages"</span>,</div>
+          <div>&nbsp; <span class="c-yellow">backend</span>: <span class="c-orange">"ninguno"</span>,</div>
+          <div>&nbsp; <span class="c-yellow">costo</span>: <span class="c-orange">"$0"</span>,</div>
+          <div>}</div>
+          <div>&nbsp;</div>
+          <div><span class="c-green">// Tus datos nunca salen</span></div>
+          <div><span class="c-green">// de tu dispositivo.</span></div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ── Footer ────────────────────────────────────────────────── -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="icon">☀️</div>
-        <div class="name">Vida Sana Mayor</div>
-        <p>
-          Herramienta gratuita y de código abierto para la gestión del
-          historial médico. Desarrollada con ❤️ para personas con
-          enfermedades crónicas y sus familias.
-        </p>
-      </div>
+  <!-- ── Registro ──────────────────────────────────────────────── -->
+  <section class="register section" id="registro">
+    <div class="container">
+      <div class="register-inner">
+        <div class="fade-up">
+          <span class="tag">Comunidad</span>
+          <h2 class="heading-lg">Únete. Cuéntame tu historia.</h2>
+          <p class="lead">
+            Déjame tu correo y un mensaje. Me ayuda saber cómo la app
+            puede ser útil para ti o para alguien que quieres.
+          </p>
+        </div>
 
-      <div class="footer-col">
-        <h4>La app</h4>
-        <ul>
-          <li><a href="https://untaldouglas.github.io/vida-sana-mayor/" target="_blank" rel="noopener">Abrir la app</a></li>
-          <li><a href="https://github.com/untaldouglas/vida-sana-mayor" target="_blank" rel="noopener">Código fuente</a></li>
-          <li><a href="https://github.com/untaldouglas/vida-sana-mayor/issues" target="_blank" rel="noopener">Reportar un error</a></li>
-          <li><a href="https://ko-fi.com/untaldouglas" target="_blank" rel="noopener">☕ Apoyar el proyecto</a></li>
-        </ul>
-      </div>
+        <div class="counter-badge fade-up" id="counter-badge">
+          <span>🌿</span>
+          <span>Ya somos <strong class="count" id="counter-num">…</strong> personas en esta comunidad</span>
+        </div>
 
-      <div class="footer-col">
-        <h4>Autor</h4>
-        <ul>
-          <li><a href="https://www.untaldouglas.info/" target="_blank" rel="noopener">untaldouglas.info</a></li>
-          <li><a href="https://github.com/untaldouglas" target="_blank" rel="noopener">GitHub</a></li>
-          <li><a href="#registro">Escribir a Douglas</a></li>
-        </ul>
+        <div class="form-card fade-up">
+          <!-- Formulario visible -->
+          <form id="register-form">
+            <div class="form-group">
+              <label for="field-name">Tu nombre <span style="color:#aaa;font-weight:400;">(opcional)</span></label>
+              <input type="text" id="field-name" name="name" placeholder="¿Cómo te llamas?" autocomplete="name" />
+            </div>
+
+            <div class="form-group">
+              <label for="field-email">Correo electrónico <span style="color:#e74c3c;">*</span></label>
+              <input type="email" id="field-email" name="email" required placeholder="tu@correo.com"
+                autocomplete="email" />
+            </div>
+
+            <div class="form-group">
+              <label for="field-message">Tu mensaje <span style="color:#e74c3c;">*</span></label>
+              <textarea id="field-message" name="message" required
+                placeholder="¿Qué te trajo aquí? ¿Cómo podría ayudarte esta app?&#10;&#10;Puedes escribir en el idioma que prefieras."></textarea>
+            </div>
+
+            <!-- Honeypot anti-spam -->
+            <input type="text" name="_honey" style="display:none;" tabindex="-1" autocomplete="off" />
+
+            <button type="submit" class="btn btn-primary form-submit" id="submit-btn">
+              <span id="submit-text">Enviar y unirme a la comunidad 🌿</span>
+            </button>
+
+            <p class="form-note">
+              Al enviar, aceptas que Douglas Galindo reciba tu correo para
+              contactarte sobre Vida Sana Mayor. No hay spam, nunca. 🙏
+            </p>
+          </form>
+
+          <!-- Mensaje de éxito -->
+          <div class="form-success" id="form-success">
+            <div class="big-icon">🌻</div>
+            <h3>¡Gracias por escribir!</h3>
+            <p>Tu mensaje llegó. Douglas lo leerá personalmente y te responderá en cuanto pueda.</p>
+            <p style="margin-top:12px;">Mientras tanto, puedes
+              <a href="https://untaldouglas.github.io/vida-sana-mayor/" target="_blank" rel="noopener"
+                style="color:var(--olive-dark);font-weight:700;">
+                abrir la app ahora mismo →
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="footer-bottom">
-      <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;">
-        © 2024–2026 Douglas Galindo · Hecho en El Salvador 🇸🇻
+  <!-- ── Footer ────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="icon">☀️</div>
+          <div class="name">Vida Sana Mayor</div>
+          <p>
+            Herramienta gratuita y de código abierto para la gestión del
+            historial médico. Desarrollada con ❤️ para personas con
+            enfermedades crónicas y sus familias.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>La app</h4>
+          <ul>
+            <li><a href="https://untaldouglas.github.io/vida-sana-mayor/" target="_blank" rel="noopener">Abrir la
+                app</a></li>
+            <li><a href="https://github.com/untaldouglas/vida-sana-mayor" target="_blank" rel="noopener">Código
+                fuente</a></li>
+            <li><a href="https://github.com/untaldouglas/vida-sana-mayor/issues" target="_blank" rel="noopener">Reportar
+                un error</a></li>
+            <li><a href="https://ko-fi.com/untaldouglas" target="_blank" rel="noopener">☕ Apoyar el proyecto</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Autor</h4>
+          <ul>
+            <li><a href="https://www.untaldouglas.info/" target="_blank" rel="noopener">untaldouglas.info</a></li>
+            <li><a href="https://github.com/untaldouglas" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="#registro">Escribir a Douglas</a></li>
+          </ul>
+        </div>
       </div>
-      <div class="license">
-        📄 Apache License 2.0 · Uso libre con atribución
+
+      <div class="footer-bottom">
+        <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;">
+          © 2024–2026 Douglas Galindo · Hecho en El Salvador 🇸🇻
+        </div>
+        <div class="license">
+          📄 Apache License 2.0 · Uso libre con atribución
+        </div>
       </div>
     </div>
-  </div>
-</footer>
+  </footer>
 
-<!-- ── Scripts ───────────────────────────────────────────────── -->
-<script>
-  /* ─── Configuración ──────────────────────────────────────────
-   *
-   * PASO 1: Obtén tu access key gratuita en https://web3forms.com
-   *         Ingresa el email: vida-sana@untaldouglas.info
-   *         Recibirás la key por correo.
-   *
-   * PASO 2: Reemplaza el valor de WEB3FORMS_KEY con tu key real.
-   *
-   * PASO 3: El contador de usuarios usa CounterAPI (gratuito,
-   *         sin registro). El namespace "vidasanamayor" y la clave
-   *         "registros" se crean automáticamente en la primera visita.
-   *
-   * ─────────────────────────────────────────────────────────── */
-  const WEB3FORMS_KEY  = 'TU_ACCESS_KEY_AQUI'  // ← reemplazar
-  const COUNTER_NS     = 'vidasanamayor'
-  const COUNTER_KEY    = 'registros'
-  const COUNTER_URL    = `https://api.counterapi.dev/v1/${COUNTER_NS}/${COUNTER_KEY}`
+  <!-- ── Scripts ───────────────────────────────────────────────── -->
+  <script>
+    /* ─── Configuración ──────────────────────────────────────────
+     *
+     * PASO 1: Obtén tu access key gratuita en https://web3forms.com
+     *         Ingresa el email: vida-sana@untaldouglas.info
+     *         Recibirás la key por correo.
+     *
+     * PASO 2: Reemplaza el valor de WEB3FORMS_KEY con tu key real.
+     *
+     * PASO 3: El contador de usuarios usa CounterAPI (gratuito,
+     *         sin registro). El namespace "vidasanamayor" y la clave
+     *         "registros" se crean automáticamente en la primera visita.
+     *
+     * ─────────────────────────────────────────────────────────── */
+    const WEB3FORMS_KEY = '84415aa3-2c29-4a60-ab40-4aacfc806009'  // ← reemplazar
+    const COUNTER_NS = 'vidasanamayor'
+    const COUNTER_KEY = 'registros'
+    const COUNTER_URL = `https://api.counterapi.dev/v1/${COUNTER_NS}/${COUNTER_KEY}`
 
-  /* ─── Contador de registros ─────────────────────────────── */
-  async function loadCounter() {
-    try {
-      const res  = await fetch(COUNTER_URL)
-      const data = await res.json()
-      document.getElementById('counter-num').textContent = data.count ?? '0'
-    } catch {
-      document.getElementById('counter-badge').style.display = 'none'
-    }
-  }
-
-  async function incrementCounter() {
-    try {
-      const res  = await fetch(COUNTER_URL + '/up')
-      const data = await res.json()
-      document.getElementById('counter-num').textContent = data.count ?? '?'
-    } catch { /* silencioso */ }
-  }
-
-  loadCounter()
-
-  /* ─── Formulario ────────────────────────────────────────── */
-  document.getElementById('register-form').addEventListener('submit', async function (e) {
-    e.preventDefault()
-
-    const btn  = document.getElementById('submit-btn')
-    const text = document.getElementById('submit-text')
-
-    btn.disabled = true
-    text.textContent = 'Enviando…'
-
-    const email   = document.getElementById('field-email').value.trim()
-    const name    = document.getElementById('field-name').value.trim()
-    const message = document.getElementById('field-message').value.trim()
-
-    try {
-      const res = await fetch('https://api.web3forms.com/submit', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          access_key:   WEB3FORMS_KEY,
-          from_name:    name || email,
-          email:        email,
-          subject:      `Nueva inscripción – Vida Sana Mayor · ${name || email}`,
-          message:      message,
-          redirect:     false,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (data.success) {
-        await incrementCounter()
-        document.getElementById('register-form').style.display = 'none'
-        document.getElementById('form-success').style.display  = 'block'
-      } else {
-        throw new Error(data.message || 'Error desconocido')
+    /* ─── Contador de registros ─────────────────────────────── */
+    async function loadCounter() {
+      try {
+        const res = await fetch(COUNTER_URL)
+        const data = await res.json()
+        document.getElementById('counter-num').textContent = data.count ?? '0'
+      } catch {
+        document.getElementById('counter-badge').style.display = 'none'
       }
-    } catch (err) {
-      text.textContent = 'Error al enviar. Intenta de nuevo.'
-      btn.disabled = false
-      console.error('Form error:', err)
     }
-  })
 
-  /* ─── Animaciones de entrada con IntersectionObserver ─── */
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible')
-        observer.unobserve(entry.target)
+    async function incrementCounter() {
+      try {
+        const res = await fetch(COUNTER_URL + '/up')
+        const data = await res.json()
+        document.getElementById('counter-num').textContent = data.count ?? '?'
+      } catch { /* silencioso */ }
+    }
+
+    loadCounter()
+
+    /* ─── Formulario ────────────────────────────────────────── */
+    document.getElementById('register-form').addEventListener('submit', async function (e) {
+      e.preventDefault()
+
+      const btn = document.getElementById('submit-btn')
+      const text = document.getElementById('submit-text')
+
+      btn.disabled = true
+      text.textContent = 'Enviando…'
+
+      const email = document.getElementById('field-email').value.trim()
+      const name = document.getElementById('field-name').value.trim()
+      const message = document.getElementById('field-message').value.trim()
+
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            from_name: name || email,
+            email: email,
+            subject: `Nueva inscripción – Vida Sana Mayor · ${name || email}`,
+            message: message,
+            redirect: false,
+          }),
+        })
+
+        const data = await res.json()
+
+        if (data.success) {
+          await incrementCounter()
+          document.getElementById('register-form').style.display = 'none'
+          document.getElementById('form-success').style.display = 'block'
+        } else {
+          throw new Error(data.message || 'Error desconocido')
+        }
+      } catch (err) {
+        text.textContent = 'Error al enviar. Intenta de nuevo.'
+        btn.disabled = false
+        console.error('Form error:', err)
       }
     })
-  }, { threshold: 0.12 })
 
-  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el))
-</script>
+    /* ─── Animaciones de entrada con IntersectionObserver ─── */
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible')
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.12 })
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el))
+  </script>
 
 </body>
+
 </html>
