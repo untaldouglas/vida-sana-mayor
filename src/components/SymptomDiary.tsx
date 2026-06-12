@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getSymptoms, saveSymptom, deleteSymptom, generateId, speak, updateProgress, saveMedia } from '../storage'
 import type { SymptomEntry, Profile, MediaFile } from '../types'
+import SymptomTrends from './SymptomTrends'
 
 interface SymptomDiaryProps {
   profile: Profile
@@ -16,8 +17,11 @@ const PAIN_FACES = [
 
 const SYMPTOM_TAGS = ['Cansancio', 'Náusea', 'Mareo', 'Fiebre', 'Tos', 'Dificultad respirar', 'Hinchazón', 'Hormigueo', 'Pérdida apetito', 'Insomnio']
 
+type Tab = 'list' | 'trends'
+
 export default function SymptomDiary({ profile, showToast }: SymptomDiaryProps) {
   const [entries, setEntries] = useState<SymptomEntry[]>([])
+  const [activeTab, setActiveTab] = useState<Tab>('list')
   const [showForm, setShowForm] = useState(false)
   const [recording, setRecording] = useState(false)
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
@@ -166,12 +170,38 @@ export default function SymptomDiary({ profile, showToast }: SymptomDiaryProps) 
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>😊 Diario de síntomas</h2>
         <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>+ Registrar</button>
       </div>
 
-      {entries.length === 0 && (
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 16, background: 'var(--bg-card)', borderRadius: 12, padding: 4, border: '1px solid var(--border)' }}>
+        {(['list', 'trends'] as Tab[]).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              flex: 1, padding: '8px', borderRadius: 10, fontWeight: 700,
+              border: 'none', cursor: 'pointer', fontFamily: 'var(--font)', fontSize: '0.88rem',
+              background: activeTab === tab ? 'var(--bg,#fff)' : 'transparent',
+              color: activeTab === tab ? 'var(--olive-dark,#6B7A46)' : 'var(--text-light)',
+              boxShadow: activeTab === tab ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.15s',
+            }}
+          >
+            {tab === 'list' ? '📋 Lista' : '📈 Tendencias'}
+          </button>
+        ))}
+      </div>
+
+      {/* Tendencias tab */}
+      {activeTab === 'trends' && (
+        <SymptomTrends profile={profile} entries={entries} />
+      )}
+
+      {/* Lista tab */}
+      {activeTab === 'list' && entries.length === 0 && (
         <div className="card text-center" style={{ padding: 40 }}>
           <div style={{ fontSize: '3rem', marginBottom: 12 }}>📓</div>
           <p className="text-muted">Aún no hay síntomas registrados</p>
@@ -181,7 +211,7 @@ export default function SymptomDiary({ profile, showToast }: SymptomDiaryProps) 
         </div>
       )}
 
-      {Object.entries(grouped).map(([date, dayEntries]) => (
+      {activeTab === 'list' && Object.entries(grouped).map(([date, dayEntries]) => (
         <div key={date} className="card" style={{ marginBottom: 16 }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-light)', marginBottom: 12 }}>
             📅 {new Date(date + 'T00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}
