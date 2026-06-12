@@ -150,7 +150,8 @@ make deploy-gh    # GitHub Pages
 ## 🔒 Privacidad y seguridad
 
 - **Zero datos en servidor** – todo vive en tu dispositivo
-- **IndexedDB** para almacenamiento local
+- **SQLite WASM** (sql.js) como motor principal de datos, con `PRAGMA foreign_keys = ON`
+- **IndexedDB** solo para binary blobs (audio, fotos) y persistencia del archivo SQLite
 - **AES-256-GCM** para respaldos cifrados
 - **PBKDF2** con 310,000 iteraciones para derivación de claves
 - **Sin rastreo, sin analytics, sin publicidad**
@@ -162,24 +163,28 @@ make deploy-gh    # GitHub Pages
 
 ```
 src/
-├── main.tsx                # Punto de entrada
+├── main.tsx                # Punto de entrada + exposición de __vsm_storage para tests E2E
 ├── App.tsx                 # Aplicación principal + navegación
 ├── App.css                 # Estilos globales (diseño cálido)
-├── storage.ts              # IndexedDB + cifrado AES-256
+├── storage.ts              # Capa de datos: SQLite WASM + cifrado AES-256 para respaldos
 ├── types/
 │   └── index.ts            # Tipos TypeScript (FHIR R4 simplificado + AIConfig)
 ├── services/
 │   └── aiService.ts        # Capa de servicio IA (Ollama, Anthropic, OpenAI, Google, Mistral)
+├── db/
+│   ├── schema.ts           # DDL completo SQLite: 21 tablas, FK, CASCADE, CHECK constraints
+│   └── database.ts         # sql.js init, withTransaction, querySQL, runSQL, helpers IDB blobs
 └── components/
     ├── Agreement.tsx        # Acuerdo de uso (incl. aviso de IA) con voz
     ├── Onboarding.tsx       # Onboarding + configuración IA inicial + añadir perfiles
     ├── Auth.tsx             # PIN + biometría
     ├── Dashboard.tsx        # Pantalla principal + estado de IA
-    ├── Medications.tsx      # Gestión de medicamentos
-    ├── MedicalRecord.tsx    # Expediente clínico (FHIR R4)
+    ├── Medications.tsx      # Gestión de medicamentos + doctor recetante
+    ├── MedicalRecord.tsx    # Expediente clínico FHIR R4 + consultas médicas
     ├── SymptomDiary.tsx     # Diario de síntomas
     ├── Agenda.tsx           # Agenda y citas
     ├── Doctors.tsx          # Gestión de doctores
+    ├── DoctorSelector.tsx   # Selector reutilizable de doctor (con creación inline)
     ├── Progress.tsx         # Progreso y soles
     ├── Scan.tsx             # OCR + grabación de consultas
     ├── ShareExport.tsx      # QR + respaldo cifrado
@@ -187,7 +192,9 @@ src/
     ├── MedicalExams.tsx     # Exámenes médicos (lab, radiología, procedimientos)
     ├── ServiceProviders.tsx # Proveedores de servicios médicos
     ├── AISettings.tsx       # Configuración de proveedor IA (Ollama/nube)
-    └── AIFeatureInfo.tsx    # Componente informativo de funciones con IA
+    ├── AIFeatureInfo.tsx    # Componente informativo de funciones con IA
+    ├── TagManager.tsx       # Catálogo de etiquetas libres (nombre + categoría + color)
+    └── TagPicker.tsx        # Selector de tags inline en formularios de entidades
 ```
 
 ---
@@ -214,11 +221,14 @@ Paleta cálida inspirada en papel reciclado:
 - **React 18** + TypeScript
 - **Vite 5** + vite-plugin-pwa
 - **Workbox** (Service Worker, caché offline)
-- **IndexedDB** via `idb`
+- **SQLite WASM** via `sql.js` — motor de base de datos relacional en el navegador,
+  con `PRAGMA foreign_keys = ON` y soporte completo de FK, CASCADE y CHECK
+- **IndexedDB** via `idb` — solo para binary blobs (audio, fotos) y persistencia del archivo SQLite
 - **Web Crypto API** (AES-256-GCM nativa del navegador)
 - **Tesseract.js** (OCR offline)
 - **QRCode.js** (generación de QR)
 - **Web Speech API** (voz + reconocimiento es-MX)
+- **Playwright** (suite E2E de 40 tests para todos los módulos CRUD)
 - **Fetch API** (llamadas a proveedores de IA, usando credenciales del usuario)
 
 ---
@@ -272,6 +282,10 @@ Ver [CHANGELOG.md](CHANGELOG.md) para la historia completa de cambios.
 
 | Versión | Fecha | Descripción |
 |---------|-------|-------------|
+| **2.1.1** | 2026-06-11 | Integridad referencial corregida, tests E2E 40/40 verdes |
+| **2.1.0** | 2026-03-31 | Consultas médicas, doctor recetante, sistema de tags |
+| **2.0.0** | 2026-03-31 | Motor SQLite WASM con FK reales (breaking change) |
+| **1.4.0** | 2026-03-25 | Skills Claude Code + conector MCP GitHub |
 | **1.3.0** | 2026-03-25 | Exámenes médicos, proveedores de salud, calificaciones ⭐ |
 | **1.2.0** | 2026-03-18 | Fotos en medicamentos, doctores y citas |
 | **1.1.0** | 2026-03-10 | Inteligencia Artificial opcional (5 proveedores) |

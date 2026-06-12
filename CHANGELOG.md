@@ -13,6 +13,42 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 
 ---
 
+## [2.1.1] – 2026-06-11
+
+### Corregido
+- **Carga del motor SQLite en desarrollo** – `sql.js` se excluía del pre-bundling de Vite,
+  lo que impedía que el módulo UMD se convirtiera a ESM correctamente y causaba pantalla
+  blanca al iniciar la app. Solución: permitir que Vite (esbuild) pre-bundle `sql.js`,
+  garantizando un `export default` válido en el navegador.
+- **Integridad referencial: `INSERT OR REPLACE` reemplazado en toda la capa de datos** –
+  el patrón anterior disparaba un ciclo `DELETE + INSERT` que activaba `ON DELETE CASCADE /
+  SET NULL` en tablas hijas, borrando o dejando en `NULL` referencias válidas (doctor en
+  consulta, diagnóstico en medicamento, etc.). Todos los upserts migrados a
+  `INSERT INTO … ON CONFLICT(id) DO UPDATE SET …`.
+- **Orden de escritura en `saveAppState`** – los perfiles ahora se insertan antes que
+  `app_state` para respetar la FK `active_profile_id → profiles(id)`.
+- **Orden de escritura en `saveMedicalRecord`** – las consultas se guardan antes que los
+  medicamentos para respetar la FK `prescribing_consultation_id → consultations(id)`.
+- **Limpieza de `entity_tags` al eliminar entidades** – `deleteDoctor`, `deleteAppointment`,
+  `deleteMedicalExam`, `deleteServiceProvider` y `deleteDiagnosis` ahora eliminan las filas
+  de `entity_tags` correspondientes antes del `DELETE` principal (la columna `entity_id` es
+  polimórfica y no tiene FK, por lo que la limpieza debe hacerse en código).
+- **Suite de tests E2E: `seed.ts` reescrito para SQLite** – la función `goToDashboard`
+  usaba `indexedDB.open('vida-sana-mayor')` (IDB de la versión anterior a v2.0), lo que
+  hacía que todos los tests fallaran con timeout. Ahora usa `window.__vsm_storage.saveAppState`
+  directamente sobre el motor SQLite activo.
+- **Tests de Síntomas** – los tests de READ y DELETE inyectaban datos via IDB obsoleto;
+  migrados a `window.__vsm_storage.saveSymptom` (SQLite).
+- **Tests de Expediente clínico** – la sección "Diagnósticos" ya no abre por defecto
+  (`defaultOpen` cambió a `consultations` en v2.1.0); los tests ahora expanden la sección
+  explícitamente antes de interactuar.
+- **`window.__vsm_storage` expuesto para tests** – `main.tsx` expone la capa de storage
+  mediante un import dinámico, permitiendo que el seed de Playwright llame a las funciones
+  reales de SQLite desde el contexto del navegador headless.
+- **Todos los 40 tests E2E pasan** (0 fallos) tras los fixes anteriores.
+
+---
+
 ## [2.1.0] – 2026-03-31
 
 ### Añadido
@@ -175,7 +211,8 @@ Versiones: [Semantic Versioning](https://semver.org/lang/es/)
 
 ---
 
-[Unreleased]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/untaldouglas/vida-sana-mayor/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/untaldouglas/vida-sana-mayor/compare/v2.1.0...v2.1.1
 [1.4.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/untaldouglas/vida-sana-mayor/compare/v1.1.0...v1.2.0
