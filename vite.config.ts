@@ -6,9 +6,6 @@ const base = '/vida-sana-mayor/'
 
 export default defineConfig({
   base,
-  optimizeDeps: {
-    exclude: ['sql.js']
-  },
   plugins: [
     react(),
     VitePWA({

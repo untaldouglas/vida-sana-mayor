@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test'
 import { goToDashboard, clearProfileData, PROFILE_ID } from './helpers/seed'
 
+type StorageWindow = Window & {
+  __vsm_storage?: {
+    saveSymptom: (entry: unknown) => Promise<void>
+  }
+}
+
 test.describe('CRUD Síntomas', () => {
   test.beforeEach(async ({ page }) => {
     await goToDashboard(page)
@@ -33,30 +39,21 @@ test.describe('CRUD Síntomas', () => {
     await expect(page.getByText('Cansancio y fiebre desde la mañana')).toBeVisible()
   })
 
-  test('READ – síntomas guardados aparecen en lista (vía IDB)', async ({ page }) => {
-    // Insertar síntoma directo en IDB para aislar el bug del form
-    await page.evaluate((profileId) => {
-      return new Promise<void>((resolve) => {
-        const entry = {
-          id: 'test-sym-001',
-          profileId,
-          date: new Date().toISOString().split('T')[0],
-          time: '09:00',
-          painLevel: 1,
-          description: 'Dolor leve de cabeza',
-          tags: ['Mareo'],
-        }
-        const req = indexedDB.open('vida-sana-mayor')
-        req.onsuccess = (e) => {
-          const db = (e.target as IDBOpenDBRequest).result
-          const tx = db.transaction('symptoms', 'readwrite')
-          tx.objectStore('symptoms').put(entry)
-          tx.oncomplete = () => resolve()
-        }
+  test('READ – síntomas guardados aparecen en lista (vía storage)', async ({ page }) => {
+    await page.evaluate(async (profileId) => {
+      const storage = (window as StorageWindow).__vsm_storage
+      if (!storage) throw new Error('__vsm_storage no disponible')
+      await storage.saveSymptom({
+        id: 'test-sym-001',
+        profileId,
+        date: new Date().toISOString().split('T')[0],
+        time: '09:00',
+        painLevel: 1,
+        description: 'Dolor leve de cabeza',
+        tags: [],
       })
     }, PROFILE_ID)
 
-    // Recargar para que React lea los datos actualizados
     await page.reload()
     await page.waitForSelector('text=Hola, Tester')
     await page.getByRole('button', { name: /Síntomas/ }).first().click()
@@ -66,25 +63,17 @@ test.describe('CRUD Síntomas', () => {
   })
 
   test('DELETE – eliminar un síntoma de la lista', async ({ page }) => {
-    // Insertar síntoma directo en IDB
-    await page.evaluate((profileId) => {
-      return new Promise<void>((resolve) => {
-        const entry = {
-          id: 'test-sym-002',
-          profileId,
-          date: new Date().toISOString().split('T')[0],
-          time: '10:00',
-          painLevel: 0,
-          description: 'Sin dolor hoy',
-          tags: [],
-        }
-        const req = indexedDB.open('vida-sana-mayor')
-        req.onsuccess = (e) => {
-          const db = (e.target as IDBOpenDBRequest).result
-          const tx = db.transaction('symptoms', 'readwrite')
-          tx.objectStore('symptoms').put(entry)
-          tx.oncomplete = () => resolve()
-        }
+    await page.evaluate(async (profileId) => {
+      const storage = (window as StorageWindow).__vsm_storage
+      if (!storage) throw new Error('__vsm_storage no disponible')
+      await storage.saveSymptom({
+        id: 'test-sym-002',
+        profileId,
+        date: new Date().toISOString().split('T')[0],
+        time: '10:00',
+        painLevel: 0,
+        description: 'Sin dolor hoy',
+        tags: [],
       })
     }, PROFILE_ID)
 

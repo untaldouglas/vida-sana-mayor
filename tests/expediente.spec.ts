@@ -19,7 +19,7 @@ test.describe('CRUD Expediente clínico', () => {
   test('Diagnóstico CREATE + READ + DELETE', async ({ page }) => {
     await goToExpediente(page)
 
-    // El panel Diagnósticos viene abierto por defecto
+    await page.getByRole('button', { name: /Diagnósticos/ }).click()
     await page.getByRole('button', { name: '+ Añadir diagnóstico' }).click()
     await page.getByPlaceholder('Ej: Diabetes tipo 2').fill('Diabetes tipo 2')
     await page.getByRole('button', { name: /Guardar/ }).click()
@@ -36,6 +36,7 @@ test.describe('CRUD Expediente clínico', () => {
   test('Diagnóstico UPDATE – editar condición', async ({ page }) => {
     await goToExpediente(page)
 
+    await page.getByRole('button', { name: /Diagnósticos/ }).click()
     await page.getByRole('button', { name: '+ Añadir diagnóstico' }).click()
     await page.getByPlaceholder('Ej: Diabetes tipo 2').fill('Hipertensión')
     await page.getByRole('button', { name: /Guardar/ }).click()
@@ -130,6 +131,7 @@ test.describe('CRUD Expediente clínico', () => {
 
   test('VALIDACIÓN – Guardar diagnóstico deshabilitado sin condición', async ({ page }) => {
     await goToExpediente(page)
+    await page.getByRole('button', { name: /Diagnósticos/ }).click()
     await page.getByRole('button', { name: '+ Añadir diagnóstico' }).click()
     await expect(page.getByRole('button', { name: /Guardar/ })).toBeDisabled()
     await page.getByPlaceholder('Ej: Diabetes tipo 2').fill('X')

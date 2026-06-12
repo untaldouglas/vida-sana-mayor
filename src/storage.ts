@@ -297,12 +297,37 @@ export async function loadAppState(): Promise<AppState | null> {
 
 export async function saveAppState(state: AppState): Promise<void> {
   await withTransaction(db => {
-    // 1. Upsert singleton de app_state
+    // 1. Upsert perfiles PRIMERO (app_state.active_profile_id tiene FK a profiles)
+    //    ON CONFLICT DO UPDATE evita el DELETE+INSERT de INSERT OR REPLACE,
+    //    que haría CASCADE y borraría todos los datos del perfil.
+    for (const p of state.profiles) {
+      runSQL(db,
+        `INSERT INTO profiles (id, name, relation, is_primary, avatar, created_at)
+         VALUES (?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           name       = excluded.name,
+           relation   = excluded.relation,
+           is_primary = excluded.is_primary,
+           avatar     = excluded.avatar,
+           created_at = excluded.created_at`,
+        [p.id, p.name, p.relation, p.isPrimary ? 1 : 0, p.avatar ?? null, p.createdAt]
+      )
+    }
+
+    // 2. Upsert singleton de app_state (después de que los perfiles existen)
     runSQL(db,
-      `INSERT OR REPLACE INTO app_state
+      `INSERT INTO app_state
          (id, active_profile_id, onboarding_done, agreement_accepted,
           pin_hash, auth_method, encryption_key, ai_config)
-       VALUES ('main',?,?,?,?,?,?,?)`,
+       VALUES ('main',?,?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         active_profile_id  = excluded.active_profile_id,
+         onboarding_done    = excluded.onboarding_done,
+         agreement_accepted = excluded.agreement_accepted,
+         pin_hash           = excluded.pin_hash,
+         auth_method        = excluded.auth_method,
+         encryption_key     = excluded.encryption_key,
+         ai_config          = excluded.ai_config`,
       [
         state.activeProfileId ?? null,
         state.onboardingDone    ? 1 : 0,
@@ -313,15 +338,6 @@ export async function saveAppState(state: AppState): Promise<void> {
         state.aiConfig ? JSON.stringify(state.aiConfig) : null
       ]
     )
-
-    // 2. Upsert todos los perfiles del estado en memoria
-    for (const p of state.profiles) {
-      runSQL(db,
-        `INSERT OR REPLACE INTO profiles (id, name, relation, is_primary, avatar, created_at)
-         VALUES (?,?,?,?,?,?)`,
-        [p.id, p.name, p.relation, p.isPrimary ? 1 : 0, p.avatar ?? null, p.createdAt]
-      )
-    }
 
     // 3. Eliminar perfiles que ya no están en el estado
     //    (ON DELETE CASCADE limpia todo su árbol de datos)
@@ -347,8 +363,14 @@ export async function getProfiles(): Promise<Profile[]> {
 export async function saveProfile(profile: Profile): Promise<void> {
   await withTransaction(db => {
     runSQL(db,
-      `INSERT OR REPLACE INTO profiles (id, name, relation, is_primary, avatar, created_at)
-       VALUES (?,?,?,?,?,?)`,
+      `INSERT INTO profiles (id, name, relation, is_primary, avatar, created_at)
+       VALUES (?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         name       = excluded.name,
+         relation   = excluded.relation,
+         is_primary = excluded.is_primary,
+         avatar     = excluded.avatar,
+         created_at = excluded.created_at`,
       [profile.id, profile.name, profile.relation, profile.isPrimary ? 1 : 0,
        profile.avatar ?? null, profile.createdAt]
     )
@@ -425,37 +447,94 @@ export async function saveMedicalRecord(record: MedicalRecord): Promise<void> {
     // ── Alergias ──────────────────────────────────────────────
     _syncSimpleItems(db, 'allergies', pid, record.allergies, (db, a) =>
       runSQL(db,
-        `INSERT OR REPLACE INTO allergies (id, profile_id, substance, reaction, severity, recorded_date)
-         VALUES (?,?,?,?,?,?)`,
+        `INSERT INTO allergies (id, profile_id, substance, reaction, severity, recorded_date)
+         VALUES (?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           substance     = excluded.substance,
+           reaction      = excluded.reaction,
+           severity      = excluded.severity,
+           recorded_date = excluded.recorded_date`,
         [a.id, pid, a.substance, a.reaction, a.severity, a.recordedDate]
-      )
+      ),
+      'allergy'
     )
     // ── Vacunas ───────────────────────────────────────────────
     _syncSimpleItems(db, 'vaccines', pid, record.vaccines, (db, v) =>
       runSQL(db,
-        `INSERT OR REPLACE INTO vaccines (id, profile_id, name, date, dose, next_date)
-         VALUES (?,?,?,?,?,?)`,
+        `INSERT INTO vaccines (id, profile_id, name, date, dose, next_date)
+         VALUES (?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           name      = excluded.name,
+           date      = excluded.date,
+           dose      = excluded.dose,
+           next_date = excluded.next_date`,
         [v.id, pid, v.name, v.date, v.dose ?? null, v.nextDate ?? null]
       )
     )
     // ── Diagnósticos ──────────────────────────────────────────
-    // ANTES de medicamentos (FK medications.diagnosis_id → diagnoses.id)
+    // ON CONFLICT DO UPDATE evita CASCADE delete en doctor_diagnoses y medications.diagnosis_id
     _syncSimpleItems(db, 'diagnoses', pid, record.diagnoses, (db, d) =>
       runSQL(db,
-        `INSERT OR REPLACE INTO diagnoses (id, profile_id, condition, icd_code, onset_date, status, notes)
-         VALUES (?,?,?,?,?,?,?)`,
+        `INSERT INTO diagnoses (id, profile_id, condition, icd_code, onset_date, status, notes)
+         VALUES (?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           condition  = excluded.condition,
+           icd_code   = excluded.icd_code,
+           onset_date = excluded.onset_date,
+           status     = excluded.status,
+           notes      = excluded.notes`,
         [d.id, pid, d.condition, d.icdCode ?? null, d.onsetDate, d.status, d.notes ?? null]
-      )
+      ),
+      'diagnosis'
+    )
+    // ── Consultas ANTES de medicamentos ───────────────────────
+    // medications.prescribing_consultation_id → consultations.id ON DELETE SET NULL
+    // Si guardamos medicamentos primero y luego INSERT OR REPLACE consultas, el
+    // DELETE implícito pondría prescribing_consultation_id en NULL.
+    // Con ON CONFLICT DO UPDATE no hay DELETE, el orden ya no importa, pero
+    // mantenerlo antes de medications es más semánticamente correcto.
+    _syncSimpleItems(db, 'consultations', pid, record.consultations, (db, c) =>
+      runSQL(db,
+        `INSERT INTO consultations
+           (id, profile_id, doctor_id, date, reason, notes, audio_file_id, summary)
+         VALUES (?,?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           doctor_id     = excluded.doctor_id,
+           date          = excluded.date,
+           reason        = excluded.reason,
+           notes         = excluded.notes,
+           audio_file_id = excluded.audio_file_id,
+           summary       = excluded.summary`,
+        [c.id, pid, c.doctorId ?? null, c.date, c.reason, c.notes,
+         c.audioFileId ?? null, c.summary ?? null]
+      ),
+      'consultation'
     )
     // ── Medicamentos ──────────────────────────────────────────
     _syncSimpleItems(db, 'medications', pid, record.medications, (db, m) => {
       runSQL(db,
-        `INSERT OR REPLACE INTO medications
+        `INSERT INTO medications
            (id, profile_id, diagnosis_id,
             prescribing_doctor_id, prescription_source, prescribing_consultation_id,
             name, dose, frequency, times,
             start_date, end_date, stock, stock_alert, notes, last_taken, rating)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           diagnosis_id                = excluded.diagnosis_id,
+           prescribing_doctor_id       = excluded.prescribing_doctor_id,
+           prescription_source         = excluded.prescription_source,
+           prescribing_consultation_id = excluded.prescribing_consultation_id,
+           name        = excluded.name,
+           dose        = excluded.dose,
+           frequency   = excluded.frequency,
+           times       = excluded.times,
+           start_date  = excluded.start_date,
+           end_date    = excluded.end_date,
+           stock       = excluded.stock,
+           stock_alert = excluded.stock_alert,
+           notes       = excluded.notes,
+           last_taken  = excluded.last_taken,
+           rating      = excluded.rating`,
         [m.id, pid, m.diagnosisId ?? null,
          m.prescribingDoctorId ?? null, m.prescriptionSource ?? null,
          m.prescribingConsultationId ?? null,
@@ -463,7 +542,7 @@ export async function saveMedicalRecord(record: MedicalRecord): Promise<void> {
          JSON.stringify(m.times), m.startDate, m.endDate ?? null,
          m.stock, m.stockAlert, m.notes ?? null, m.lastTaken ?? null, m.rating ?? null]
       )
-      // Taken history: eliminar y reinsertar (es un array de valor)
+      // Taken history: eliminar y reinsertar (array de valor, siempre completo)
       runSQL(db, 'DELETE FROM medication_taken_history WHERE medication_id = ?', [m.id])
       for (const t of m.takenHistory) {
         runSQL(db,
@@ -472,23 +551,22 @@ export async function saveMedicalRecord(record: MedicalRecord): Promise<void> {
           [generateId(), m.id, t.date, t.time, t.taken ? 1 : 0]
         )
       }
-    })
-    // ── Consultas ─────────────────────────────────────────────
-    _syncSimpleItems(db, 'consultations', pid, record.consultations, (db, c) =>
-      runSQL(db,
-        `INSERT OR REPLACE INTO consultations
-           (id, profile_id, doctor_id, date, reason, notes, audio_file_id, summary)
-         VALUES (?,?,?,?,?,?,?,?)`,
-        [c.id, pid, c.doctorId ?? null, c.date, c.reason, c.notes,
-         c.audioFileId ?? null, c.summary ?? null]
-      )
+    },
+      'medication'
     )
     // ── Resultados de laboratorio ─────────────────────────────
     _syncSimpleItems(db, 'lab_results', pid, record.labResults, (db, l) =>
       runSQL(db,
-        `INSERT OR REPLACE INTO lab_results
+        `INSERT INTO lab_results
            (id, profile_id, test_name, date, result, unit, reference_range, image_file_id)
-         VALUES (?,?,?,?,?,?,?,?)`,
+         VALUES (?,?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           test_name       = excluded.test_name,
+           date            = excluded.date,
+           result          = excluded.result,
+           unit            = excluded.unit,
+           reference_range = excluded.reference_range,
+           image_file_id   = excluded.image_file_id`,
         [l.id, pid, l.testName, l.date, l.result, l.unit ?? null,
          l.referenceRange ?? null, l.imageFileId ?? null]
       )
@@ -496,27 +574,41 @@ export async function saveMedicalRecord(record: MedicalRecord): Promise<void> {
     // ── Cirugías ──────────────────────────────────────────────
     _syncSimpleItems(db, 'surgeries', pid, record.surgeries, (db, s) =>
       runSQL(db,
-        `INSERT OR REPLACE INTO surgeries
+        `INSERT INTO surgeries
            (id, profile_id, procedure, date, hospital, surgeon, notes)
-         VALUES (?,?,?,?,?,?,?)`,
+         VALUES (?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           procedure = excluded.procedure,
+           date      = excluded.date,
+           hospital  = excluded.hospital,
+           surgeon   = excluded.surgeon,
+           notes     = excluded.notes`,
         [s.id, pid, s.procedure, s.date, s.hospital ?? null, s.surgeon ?? null, s.notes ?? null]
       )
     )
     // ── Antecedentes familiares ───────────────────────────────
     _syncSimpleItems(db, 'family_history', pid, record.familyHistory, (db, f) =>
       runSQL(db,
-        `INSERT OR REPLACE INTO family_history (id, profile_id, relation, condition, notes)
-         VALUES (?,?,?,?,?)`,
+        `INSERT INTO family_history (id, profile_id, relation, condition, notes)
+         VALUES (?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET
+           relation  = excluded.relation,
+           condition = excluded.condition,
+           notes     = excluded.notes`,
         [f.id, pid, f.relation, f.condition, f.notes ?? null]
       )
     )
   })
 }
 
-/** Sincroniza una sub-tabla: upsert ítems nuevos/modificados, elimina los removidos */
+/**
+ * Sincroniza una sub-tabla: upsert ítems nuevos/modificados, elimina los removidos.
+ * Si se provee entityType, limpia entity_tags polimórficas antes de cada DELETE.
+ */
 function _syncSimpleItems<T extends {id: string}>(
   db: Database, table: string, profileId: string,
-  items: T[], upsertFn: (db: Database, item: T) => void
+  items: T[], upsertFn: (db: Database, item: T) => void,
+  entityType?: string
 ): void {
   const existing = querySQL<{id: string}>(db,
     `SELECT id FROM ${table} WHERE profile_id = ?`, [profileId]
@@ -524,9 +616,18 @@ function _syncSimpleItems<T extends {id: string}>(
 
   const newIds = items.map(i => i.id)
 
-  // Eliminar los que ya no están (ON DELETE CASCADE limpia sus hijos)
+  // Eliminar los que ya no están
   for (const id of existing) {
-    if (!newIds.includes(id)) runSQL(db, `DELETE FROM ${table} WHERE id = ?`, [id])
+    if (!newIds.includes(id)) {
+      // Limpiar entity_tags polimórficas (no tienen FK al entity_id)
+      if (entityType) {
+        runSQL(db,
+          'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?',
+          [entityType, id]
+        )
+      }
+      runSQL(db, `DELETE FROM ${table} WHERE id = ?`, [id])
+    }
   }
   // Upsert los nuevos/modificados
   for (const item of items) upsertFn(db, item)
@@ -548,6 +649,7 @@ export async function deleteDiagnosis(profileId: string, diagnosisId: string): P
   if (rows.length === 0) throw new Error('Diagnóstico no encontrado o no pertenece al perfil')
 
   await withTransaction(db => {
+    runSQL(db, 'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?', ['diagnosis', diagnosisId])
     runSQL(db, 'DELETE FROM diagnoses WHERE id = ? AND profile_id = ?', [diagnosisId, profileId])
     // FK ON DELETE CASCADE → elimina filas en doctor_diagnoses
     // FK ON DELETE SET NULL → pone NULL en medications.diagnosis_id
@@ -579,11 +681,23 @@ export async function saveDoctor(doctor: Doctor & { profileId: string }): Promis
     await assertExists('diagnoses', dId, 'Diagnóstico')
   }
   await withTransaction(db => {
+    // ON CONFLICT DO UPDATE evita el DELETE+INSERT de INSERT OR REPLACE,
+    // que haría SET NULL en consultations.doctor_id, appointments.doctor_id,
+    // medications.prescribing_doctor_id y medical_exams.doctor_id.
     runSQL(db,
-      `INSERT OR REPLACE INTO doctors
+      `INSERT INTO doctors
          (id, profile_id, name, specialty, phone, address, notes,
           audio_note_id, rating, rating_notes)
-       VALUES (?,?,?,?,?,?,?,?,?,?)`,
+       VALUES (?,?,?,?,?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         name         = excluded.name,
+         specialty    = excluded.specialty,
+         phone        = excluded.phone,
+         address      = excluded.address,
+         notes        = excluded.notes,
+         audio_note_id = excluded.audio_note_id,
+         rating       = excluded.rating,
+         rating_notes = excluded.rating_notes`,
       [doctor.id, doctor.profileId, doctor.name, doctor.specialty,
        doctor.phone ?? null, doctor.address ?? null, doctor.notes ?? null,
        doctor.audioNoteId ?? null, doctor.rating ?? null, doctor.ratingNotes ?? null]
@@ -607,6 +721,8 @@ export async function deleteDoctor(doctorId: string): Promise<void> {
   )
 
   await withTransaction(db => {
+    // Limpiar entity_tags polimórficas (no tienen FK al entity_id)
+    runSQL(db, 'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?', ['doctor', doctorId])
     runSQL(db, 'DELETE FROM doctors WHERE id = ?', [doctorId])
     // ON DELETE CASCADE → doctor_diagnoses, doctor_media → media_files
     // ON DELETE SET NULL → consultations.doctor_id, appointments.doctor_id, medical_exams.doctor_id
@@ -636,10 +752,20 @@ export async function saveAppointment(appt: Appointment & { profileId: string })
   if (appt.doctorId) await assertExists('doctors', appt.doctorId, 'Doctor')
   await withTransaction(db => {
     runSQL(db,
-      `INSERT OR REPLACE INTO appointments
+      `INSERT INTO appointments
          (id, profile_id, doctor_id, doctor_name, date, time, reason,
           location, reminder, reminder_minutes, notes)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+       VALUES (?,?,?,?,?,?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         doctor_id        = excluded.doctor_id,
+         doctor_name      = excluded.doctor_name,
+         date             = excluded.date,
+         time             = excluded.time,
+         reason           = excluded.reason,
+         location         = excluded.location,
+         reminder         = excluded.reminder,
+         reminder_minutes = excluded.reminder_minutes,
+         notes            = excluded.notes`,
       [appt.id, appt.profileId, appt.doctorId ?? null, appt.doctorName ?? null,
        appt.date, appt.time, appt.reason, appt.location ?? null,
        appt.reminder ? 1 : 0, appt.reminderMinutes, appt.notes ?? null]
@@ -655,6 +781,7 @@ export async function deleteAppointment(apptId: string): Promise<void> {
     { sql: 'SELECT m.id FROM media_files m JOIN appointment_media am ON am.media_id = m.id WHERE am.appointment_id = ?', params: [apptId] }
   )
   await withTransaction(db => {
+    runSQL(db, 'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?', ['appointment', apptId])
     runSQL(db, 'DELETE FROM appointments WHERE id = ?', [apptId])
     // ON DELETE CASCADE → appointment_media → media_files
   })
@@ -811,11 +938,27 @@ export async function saveMedicalExam(exam: MedicalExam): Promise<void> {
 
   await withTransaction(db => {
     runSQL(db,
-      `INSERT OR REPLACE INTO medical_exams
+      `INSERT INTO medical_exams
          (id, profile_id, doctor_id, doctor_name, provider_id, provider_name,
           category, exam_type, date, status, indication, result, interpretation,
           user_notes, audio_file_id, ai_summary, rating, created_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         doctor_id      = excluded.doctor_id,
+         doctor_name    = excluded.doctor_name,
+         provider_id    = excluded.provider_id,
+         provider_name  = excluded.provider_name,
+         category       = excluded.category,
+         exam_type      = excluded.exam_type,
+         date           = excluded.date,
+         status         = excluded.status,
+         indication     = excluded.indication,
+         result         = excluded.result,
+         interpretation = excluded.interpretation,
+         user_notes     = excluded.user_notes,
+         audio_file_id  = excluded.audio_file_id,
+         ai_summary     = excluded.ai_summary,
+         rating         = excluded.rating`,
       [exam.id, exam.profileId, exam.doctorId ?? null, exam.doctorName ?? null,
        exam.providerId ?? null, exam.providerName ?? null, exam.category,
        exam.examType, exam.date, exam.status, exam.indication ?? null,
@@ -833,6 +976,7 @@ export async function deleteMedicalExam(id: string): Promise<void> {
     { sql: 'SELECT id FROM media_files WHERE id = (SELECT audio_file_id FROM medical_exams WHERE id = ?)', params: [id] }
   )
   await withTransaction(db => {
+    runSQL(db, 'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?', ['exam', id])
     runSQL(db, 'DELETE FROM medical_exams WHERE id = ?', [id])
     // ON DELETE CASCADE → exam_media → media_files
     // ON DELETE SET NULL para audio_file_id (ya limpiamos el blob)
@@ -858,11 +1002,24 @@ export async function getServiceProviders(profileId: string): Promise<ServicePro
 
 export async function saveServiceProvider(provider: ServiceProvider): Promise<void> {
   await withTransaction(db => {
+    // ON CONFLICT DO UPDATE evita SET NULL en medical_exams.provider_id
     runSQL(db,
-      `INSERT OR REPLACE INTO service_providers
+      `INSERT INTO service_providers
          (id, profile_id, name, category, subcategory, address, phone, website,
           notes, audio_note_id, ai_summary, rating, rating_notes, created_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         name         = excluded.name,
+         category     = excluded.category,
+         subcategory  = excluded.subcategory,
+         address      = excluded.address,
+         phone        = excluded.phone,
+         website      = excluded.website,
+         notes        = excluded.notes,
+         audio_note_id = excluded.audio_note_id,
+         ai_summary   = excluded.ai_summary,
+         rating       = excluded.rating,
+         rating_notes = excluded.rating_notes`,
       [provider.id, provider.profileId, provider.name, provider.category,
        provider.subcategory ?? null, provider.address ?? null, provider.phone ?? null,
        provider.website ?? null, provider.notes ?? null, provider.audioNoteId ?? null,
@@ -881,6 +1038,7 @@ export async function deleteServiceProvider(id: string): Promise<void> {
     { sql: 'SELECT id FROM media_files WHERE id = (SELECT audio_note_id FROM service_providers WHERE id = ?)', params: [id] }
   )
   await withTransaction(db => {
+    runSQL(db, 'DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ?', ['provider', id])
     runSQL(db, 'DELETE FROM service_providers WHERE id = ?', [id])
     // ON DELETE CASCADE → provider_media → media_files
     // ON DELETE SET NULL → medical_exams.provider_id
@@ -1078,9 +1236,14 @@ export async function getTags(profileId: string): Promise<Tag[]> {
 
 export async function saveTag(tag: Tag): Promise<void> {
   await withTransaction(db => {
+    // ON CONFLICT DO UPDATE evita CASCADE delete en entity_tags al editar un tag existente
     runSQL(db,
-      `INSERT OR REPLACE INTO tags (id, profile_id, name, category, color)
-       VALUES (?,?,?,?,?)`,
+      `INSERT INTO tags (id, profile_id, name, category, color)
+       VALUES (?,?,?,?,?)
+       ON CONFLICT(id) DO UPDATE SET
+         name     = excluded.name,
+         category = excluded.category,
+         color    = excluded.color`,
       [tag.id, tag.profileId, tag.name.trim(), tag.category.trim(), tag.color]
     )
   })

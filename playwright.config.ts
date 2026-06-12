@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 30_000,
+  timeout: 60_000,
   fullyParallel: false,   // IndexedDB por contexto – serial para evitar colisiones
   retries: 0,
   reporter: [['html', { outputFolder: 'playwright-report', open: 'never' }], ['list']],

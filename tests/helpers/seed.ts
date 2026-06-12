@@ -20,71 +20,44 @@ export const APP_STATE = {
   aiConfig: null,
 }
 
+type StorageWindow = Window & { __vsm_storage?: { saveAppState: (s: unknown) => Promise<void>; deleteProfile: (id: string) => Promise<void> } }
+
 /**
- * Navega a la app, espera que la DB se inicialice, inyecta el AppState de prueba
- * y recarga la página hasta llegar al dashboard.
+ * Navega a la app, espera que SQLite se inicialice completamente,
+ * inyecta el AppState de prueba y recarga hasta llegar al dashboard.
  */
 export async function goToDashboard(page: Page) {
-  // Primera carga – dispara la creación del schema de IndexedDB
   await page.goto('/')
-  await page.waitForSelector('text=Cargando', { state: 'hidden', timeout: 10_000 })
 
-  // Sembrar appState
-  await page.evaluate((state) => {
-    return new Promise<void>((resolve, reject) => {
-      const req = indexedDB.open('vida-sana-mayor')
-      req.onsuccess = (e) => {
-        const db = (e.target as IDBOpenDBRequest).result
-        const tx = db.transaction('appState', 'readwrite')
-        tx.objectStore('appState').put(state, 'main')
-        tx.oncomplete = () => resolve()
-        tx.onerror = () => reject(new Error('Seed DB: put appState falló'))
-      }
-      req.onerror = () => reject(new Error('Seed DB: no se pudo abrir IndexedDB'))
-    })
+  // Esperar que React monte y SQLite se inicialice:
+  // el splash desaparece cuando loadAppState() termina de leer la BD.
+  await page.waitForSelector('text=Cargando', { state: 'hidden', timeout: 30_000 })
+
+  // En este punto main.tsx ya ejecutó el import estático y __vsm_storage está disponible.
+  await page.evaluate(async (state) => {
+    const storage = (window as StorageWindow).__vsm_storage
+    if (!storage) throw new Error('__vsm_storage no disponible en window')
+    await storage.saveAppState(state)
   }, APP_STATE)
 
-  // Recarga: la app lee el estado sembrado y muestra el dashboard
+  // Recargar: la app lee el estado sembrado desde SQLite
   await page.reload()
-  await page.waitForSelector('text=Hola, Tester', { timeout: 10_000 })
+  await page.waitForSelector('text=Hola, Tester', { timeout: 30_000 })
 }
 
 /**
- * Limpia todos los datos del perfil de prueba entre tests.
+ * Limpia todos los datos del perfil de prueba:
+ * elimina el perfil (CASCADE borra todo) y lo vuelve a crear limpio.
  */
 export async function clearProfileData(page: Page) {
-  await page.evaluate((profileId) => {
-    return new Promise<void>((resolve) => {
-      const req = indexedDB.open('vida-sana-mayor')
-      req.onsuccess = (e) => {
-        const db = (e.target as IDBOpenDBRequest).result
-        const stores = [
-          'symptoms', 'appointments', 'doctors', 'medicalExams',
-          'serviceProviders', 'media', 'ratings', 'progress',
-        ]
-        const available = stores.filter(s => db.objectStoreNames.contains(s))
-        const tx = db.transaction(available, 'readwrite')
-
-        let pending = available.length
-        if (pending === 0) { resolve(); return }
-
-        available.forEach(storeName => {
-          const store = tx.objectStore(storeName)
-          const hasIndex = store.indexNames.contains('profileId')
-          if (hasIndex) {
-            const req = store.index('profileId').getAllKeys(profileId)
-            req.onsuccess = () => {
-              (req.result as IDBValidKey[]).forEach(k => store.delete(k))
-              if (--pending === 0) resolve()
-            }
-          } else {
-            // progress usa profileId como key directamente
-            store.delete(profileId)
-            if (--pending === 0) resolve()
-          }
-        })
-      }
-      req.onerror = () => resolve()
-    })
+  await page.evaluate(async (profileId) => {
+    const storage = (window as StorageWindow).__vsm_storage
+    if (!storage) throw new Error('__vsm_storage no disponible en window')
+    await storage.deleteProfile(profileId)
   }, PROFILE_ID)
+
+  await page.evaluate(async (state) => {
+    const storage = (window as StorageWindow).__vsm_storage!
+    await storage.saveAppState(state)
+  }, APP_STATE)
 }
