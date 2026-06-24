@@ -3,13 +3,15 @@ import { getMedicalRecord } from '../storage'
 import type { AppState, Profile } from '../types'
 
 export function useReminders(profile: Profile | null, appState: AppState | null) {
+  const remindersEnabled = appState?.remindersEnabled ?? false
+  const reminderAdvanceMinutes = appState?.reminderAdvanceMinutes ?? 0
+
   useEffect(() => {
-    if (!profile || !appState || !appState.remindersEnabled) return
+    if (!profile || !appState || !remindersEnabled) return
     if (!('Notification' in window)) return
     if (Notification.permission !== 'granted') return
 
     const activeProfile = profile
-    const reminderAdvanceMinutes = appState.reminderAdvanceMinutes
     const timers: ReturnType<typeof setTimeout>[] = []
     let cancelled = false
 
@@ -55,5 +57,5 @@ export function useReminders(profile: Profile | null, appState: AppState | null)
       cancelled = true
       timers.forEach(clearTimeout)
     }
-  }, [profile?.id, appState?.remindersEnabled, appState?.reminderAdvanceMinutes])
+  }, [profile?.id, remindersEnabled, reminderAdvanceMinutes])
 }

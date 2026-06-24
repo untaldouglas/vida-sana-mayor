@@ -58,7 +58,7 @@ export default function ShareExport({ profile, appState, showToast }: ShareExpor
       showToast('✅ Respaldo descargado', 'success')
       setPin('')
       setPinConfirm('')
-    } catch (err) {
+    } catch {
       showToast('❌ Error al generar respaldo', 'error')
     }
     setGenerating(false)

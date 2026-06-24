@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { speak } from '../storage'
 import type { AppState } from '../types'
 
@@ -13,12 +13,7 @@ export default function Auth({ appState, onUnlock, onEmergency }: AuthProps) {
   const [error, setError] = useState('')
   const [attempts, setAttempts] = useState(0)
 
-  useEffect(() => {
-    speak('Ingresa tu PIN para continuar.')
-    tryBiometric()
-  }, [])
-
-  async function tryBiometric() {
+  const tryBiometric = useCallback(async () => {
     if (appState.authMethod !== 'biometric') return
     try {
       const cred = await navigator.credentials.get({
@@ -33,7 +28,12 @@ export default function Auth({ appState, onUnlock, onEmergency }: AuthProps) {
     } catch {
       // fallback to PIN
     }
-  }
+  }, [appState.authMethod, onUnlock])
+
+  useEffect(() => {
+    speak('Ingresa tu PIN para continuar.')
+    tryBiometric()
+  }, [tryBiometric])
 
   function pressKey(key: string) {
     if (key === 'del') {

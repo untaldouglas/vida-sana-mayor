@@ -3,7 +3,7 @@
 // Casos: vincular doctor existente (1:1 FK) o crear nuevo
 // sin duplicar (detección por nombre, case-insensitive).
 // ============================================================
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { generateId } from '../storage'
 import type { Doctor } from '../types'
 
@@ -38,12 +38,11 @@ export default function DoctorSelector({ doctors, profileId, doctorId, onSelect 
   const [newPhone, setNewPhone]     = useState('')
   // ID estable para el nuevo doctor (no cambia en re-renders)
   const [newId]                     = useState<string>(generateId)
-  const [dup, setDup]               = useState<Doctor | null>(null)
 
-  // Detección de duplicado al escribir nombre
-  useEffect(() => {
-    if (!newName.trim()) { setDup(null); return }
-    setDup(doctors.find(d => d.name.toLowerCase() === newName.toLowerCase().trim()) ?? null)
+  // Detección de duplicado al escribir nombre (memoizado en lugar de effect)
+  const dup = useMemo(() => {
+    if (!newName.trim()) return null
+    return doctors.find(d => d.name.toLowerCase() === newName.toLowerCase().trim()) ?? null
   }, [newName, doctors])
 
   function changeMode(m: DoctorMode) {
@@ -73,7 +72,7 @@ export default function DoctorSelector({ doctors, profileId, doctorId, onSelect 
     })
   }
 
-  function useDuplicate(d: Doctor) {
+  function selectDuplicate(d: Doctor) {
     setMode('existing')
     setSelectedId(d.id)
     onSelect(d.id)
@@ -123,7 +122,7 @@ export default function DoctorSelector({ doctors, profileId, doctorId, onSelect 
             }}>
               ⚠️ Ya existe <strong>Dr. {dup.name}</strong> ({dup.specialty}).{' '}
               <button
-                type="button" onClick={() => useDuplicate(dup)}
+                type="button" onClick={() => selectDuplicate(dup)}
                 style={{
                   background: '#8A9A5B', color: '#fff', border: 'none',
                   borderRadius: 6, padding: '3px 10px', cursor: 'pointer',

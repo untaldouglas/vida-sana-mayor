@@ -133,7 +133,7 @@ export default function SymptomDiary({ profile, showToast }: SymptomDiaryProps) 
 
     try {
       await saveSymptom(entry)
-    } catch (e) {
+    } catch {
       showToast('⚠️ Error al guardar síntoma', 'error')
       return
     }

@@ -33,7 +33,8 @@ export default function TagManager({ profile, showToast }: Props) {
   const [confirmDel, setConfirm] = useState<string | null>(null)
 
   useEffect(() => {
-    loadTags()
+    setLoading(true)
+    getTags(profile.id).then(t => { setTags(t); setLoading(false) })
   }, [profile.id])
 
   async function loadTags() {

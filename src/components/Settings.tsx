@@ -22,9 +22,12 @@ export default function Settings({ appState, onStateChange, showToast }: Setting
     'Notification' in window ? Notification.permission : 'denied'
   )
 
+  // Sincronizar permiso de notificaciones si cambia al volver a la vista
   useEffect(() => {
-    if ('Notification' in window) setNotifPermission(Notification.permission)
-  }, [])
+    if (!('Notification' in window)) return
+    const current = Notification.permission
+    if (current !== notifPermission) setNotifPermission(current)
+  }) // sin deps: comprueba en cada render, solo hace setState si cambió
 
   async function requestNotifPermission() {
     const result = await Notification.requestPermission()

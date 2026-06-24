@@ -51,7 +51,7 @@ export default function Medications({ profile, showToast }: MedicationsProps) {
 
     try {
       await saveMedicalRecord(updated)
-    } catch (e) {
+    } catch {
       showToast('⚠️ Error al registrar', 'error')
       return
     }

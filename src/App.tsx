@@ -52,8 +52,7 @@ export default function App() {
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000)
   }, [])
 
-  // Hooks deben ejecutarse siempre en el mismo orden: se calcula aquí,
-  // antes de cualquier return condicional (evita el error #310 de React).
+  // Definición única de activeProfile y llamada a hook de recordatorios
   const activeProfile = appState?.profiles.find(p => p.id === appState.activeProfileId)
     ?? appState?.profiles[0]
     ?? null
@@ -110,7 +109,7 @@ export default function App() {
 
   // ---- Autenticación ----
   if (!authenticated && appState.authMethod !== 'none') {
-    const emergencyProfile = appState.profiles.find(p => p.id === appState.activeProfileId) ?? appState.profiles[0]
+    const emergencyProfile = activeProfile
     if (showEmergency && emergencyProfile) {
       return <EmergencyCard profile={emergencyProfile} onClose={() => setShowEmergency(false)} />
     }

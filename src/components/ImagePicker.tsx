@@ -24,8 +24,10 @@ export default function ImagePicker({
 
   // Cargar previews de IDs existentes al montar
   useEffect(() => {
-    if (fileIds.length === 0) { setPreviews([]); return }
+    if (fileIds.length === 0) return
+    let cancelled = false
     Promise.all(fileIds.map(id => getMedia(id))).then(files => {
+      if (cancelled) return
       const loaded = files
         .filter((f): f is MediaFile => !!f)
         .map(f => ({
@@ -35,10 +37,15 @@ export default function ImagePicker({
         }))
       setPreviews(loaded)
     })
+    return () => { cancelled = true }
+  }, []) // solo al montar
+
+  // Limpiar object URLs al desmontar
+  useEffect(() => {
     return () => {
       previews.forEach(p => URL.revokeObjectURL(p.url))
     }
-  }, []) // solo al montar
+  }, [previews])
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return
@@ -195,17 +202,23 @@ interface ImageThumbsProps {
 export function ImageThumbs({ fileIds, size = 52 }: ImageThumbsProps) {
   const [urls, setUrls] = useState<string[]>([])
   const [expanded, setExpanded] = useState<string | null>(null)
+  const fileIdsKey = fileIds.join(',')
 
   useEffect(() => {
-    if (fileIds.length === 0) return
+    if (fileIds.length === 0) { setUrls([]); return }
+    let cancelled = false
     Promise.all(fileIds.map(id => getMedia(id))).then(files => {
+      if (cancelled) return
       const loaded = files
         .filter((f): f is MediaFile => !!f)
         .map(f => URL.createObjectURL(new Blob([f.data], { type: f.mimeType })))
-      setUrls(loaded)
+      setUrls(prev => {
+        prev.forEach(u => URL.revokeObjectURL(u))
+        return loaded
+      })
     })
-    return () => { urls.forEach(u => URL.revokeObjectURL(u)) }
-  }, [fileIds.join(',')])
+    return () => { cancelled = true }
+  }, [fileIdsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (urls.length === 0) return null
 
