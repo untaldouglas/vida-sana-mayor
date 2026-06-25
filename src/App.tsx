@@ -52,6 +52,14 @@ export default function App() {
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000)
   }, [])
 
+  // Hooks deben ejecutarse siempre en el mismo orden: se calcula aquí,
+  // antes de cualquier return condicional (evita el error #310 de React).
+  const activeProfile = appState?.profiles.find(p => p.id === appState.activeProfileId)
+    ?? appState?.profiles[0]
+    ?? null
+
+  useReminders(authenticated ? activeProfile : null, appState)
+
   async function handleAddProfile(profile: Profile) {
     if (!appState) return
     const updated: AppState = { ...appState, profiles: [...appState.profiles, profile] }
@@ -114,12 +122,6 @@ export default function App() {
       />
     )
   }
-
-  const activeProfile = appState.profiles.find(p => p.id === appState.activeProfileId)
-    ?? appState.profiles[0]
-
-  // Recordatorios de medicamentos (se activa solo si el usuario lo habilitó)
-  useReminders(activeProfile ?? null, appState)
 
   if (!activeProfile) {
     return <Onboarding onComplete={state => { setAppState(state); setAuthenticated(true) }} />

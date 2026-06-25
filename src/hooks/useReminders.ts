@@ -2,22 +2,24 @@ import { useEffect } from 'react'
 import { getMedicalRecord } from '../storage'
 import type { AppState, Profile } from '../types'
 
-export function useReminders(profile: Profile | null, appState: AppState) {
+export function useReminders(profile: Profile | null, appState: AppState | null) {
   useEffect(() => {
-    if (!profile || !appState.remindersEnabled) return
+    if (!profile || !appState || !appState.remindersEnabled) return
     if (!('Notification' in window)) return
     if (Notification.permission !== 'granted') return
 
+    const activeProfile = profile
+    const reminderAdvanceMinutes = appState.reminderAdvanceMinutes
     const timers: ReturnType<typeof setTimeout>[] = []
     let cancelled = false
 
     async function schedule() {
-      const rec = await getMedicalRecord(profile!.id)
+      const rec = await getMedicalRecord(activeProfile.id)
       if (cancelled) return
 
       const today = new Date().toISOString().split('T')[0]
       const now = Date.now()
-      const advanceMs = (appState.reminderAdvanceMinutes ?? 0) * 60_000
+      const advanceMs = (reminderAdvanceMinutes ?? 0) * 60_000
       const activeMeds = rec.medications.filter(m => !m.endDate || m.endDate >= today)
 
       for (const med of activeMeds) {
@@ -32,9 +34,8 @@ export function useReminders(profile: Profile | null, appState: AppState) {
           )
           if (alreadyTaken) continue
 
-          const advance = appState.reminderAdvanceMinutes
-          const body = advance
-            ? `En ${advance} min · ${med.name} – ${med.dose}`
+          const body = reminderAdvanceMinutes
+            ? `En ${reminderAdvanceMinutes} min · ${med.name} – ${med.dose}`
             : `${med.name} – ${med.dose} · ${timeStr}`
 
           timers.push(setTimeout(() => {
@@ -54,5 +55,5 @@ export function useReminders(profile: Profile | null, appState: AppState) {
       cancelled = true
       timers.forEach(clearTimeout)
     }
-  }, [profile?.id, appState.remindersEnabled, appState.reminderAdvanceMinutes])
+  }, [profile?.id, appState?.remindersEnabled, appState?.reminderAdvanceMinutes])
 }
